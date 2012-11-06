@@ -7,8 +7,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="groovy-1.8.2" level="application" />
-    <orderEntry type="library" name="ivy-2.3.0-rc1" level="application" />
     <orderEntry type="module-library">
       <library name="Grab:http-builder-0.5.2.jar">
         <CLASSES>
@@ -100,69 +98,6 @@
       </library>
     </orderEntry>
     <orderEntry type="module-library">
-      <library name="Grab:groovy-1.7.11.jar">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.groovy/grapes/org.codehaus.groovy/groovy/jars/groovy-1.7.11.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Grab:antlr-2.7.7.jar">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.groovy/grapes/antlr/antlr/jars/antlr-2.7.7.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Grab:asm-3.2.jar">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.groovy/grapes/asm/asm/jars/asm-3.2.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Grab:asm-commons-3.2.jar">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.groovy/grapes/asm/asm-commons/jars/asm-commons-3.2.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Grab:asm-tree-3.2.jar">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.groovy/grapes/asm/asm-tree/jars/asm-tree-3.2.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Grab:asm-util-3.2.jar">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.groovy/grapes/asm/asm-util/jars/asm-util-3.2.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library name="Grab:asm-analysis-3.2.jar">
-        <CLASSES>
-          <root url="jar://$USER_HOME$/.groovy/grapes/asm/asm-analysis/jars/asm-analysis-3.2.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
       <library name="Grab:nekohtml-1.9.9.jar">
         <CLASSES>
           <root url="jar://$USER_HOME$/.groovy/grapes/net.sourceforge.nekohtml/nekohtml/jars/nekohtml-1.9.9.jar!/" />
@@ -193,6 +128,35 @@
       <library name="Grab:xml-resolver-1.2.jar">
         <CLASSES>
           <root url="jar://$USER_HOME$/.groovy/grapes/xml-resolver/xml-resolver/jars/xml-resolver-1.2.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="library" name="groovy-1.8.8" level="application" />
+    <orderEntry type="library" name="apache-ivy-2.3.0" level="application" />
+    <orderEntry type="module-library">
+      <library name="Grab:joda-time-2.1.jar">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.groovy/grapes/joda-time/joda-time/jars/joda-time-2.1.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Grab:jfreechart-1.0.13.jar">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.groovy/grapes/jfree/jfreechart/jars/jfreechart-1.0.13.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library name="Grab:jcommon-1.0.16.jar">
+        <CLASSES>
+          <root url="jar://$USER_HOME$/.groovy/grapes/jfree/jcommon/jars/jcommon-1.0.16.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
