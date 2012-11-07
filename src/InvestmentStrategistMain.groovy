@@ -26,6 +26,10 @@ import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import org.jfree.chart.renderer.xy.XYBarRenderer
 import org.joda.time.Months
+import org.jfree.chart.plot.PiePlot
+import org.jfree.data.general.DefaultPieDataset
+import org.jfree.chart.labels.StandardPieSectionLabelGenerator
+import java.text.NumberFormat
 
 private static JFreeChart createChart(def fund, strategy)
 {
@@ -113,11 +117,46 @@ def europe = new FundData("http://www.seligson.fi/graafit/data.asp?op=eurooppa",
 europe.load()
 def corporate = new FundData("http://www.seligson.fi/graafit/data.asp?op=eurocorporate", "Seligson Corporate Bond", startDate)
 corporate.load()
+def obligaatio = new FundData("http://www.seligson.fi/graafit/data.asp?op=euroobligaatio", "Seligson Obligaatio", startDate)
+obligaatio.load()
+def pharma = new FundData("http://www.seligson.fi/graafit/data.asp?op=global-pharma", "Seligson Pharma", startDate)
+pharma.load()
+def russia = new FundData("http://www.seligson.fi/graafit/data.asp?op=russia", "Seligson Russia", startDate)
+russia.load()
+def brands = new FundData("http://www.seligson.fi/graafit/data.asp?op=global-brands", "Seligson Brands", startDate)
+brands.load()
+def aasia = new FundData("http://www.seligson.fi/graafit/data.asp?op=aasia", "Seligson Pharma", startDate)
+aasia.load()
+def phoebus = new FundData("http://www.seligson.fi/graafit/data.asp?op=phoebus", "Seligson Pharma", startDate)
+phoebus.load()
+def kehittyva = new FundData("http://www.seligson.fi/graafit/data.asp?op=kehittyva", "Seligson Pharma", startDate)
+kehittyva.load()
+def amerikka = new FundData("http://www.seligson.fi/graafit/data.asp?op=pohjoisamerikka", "Seligson Pharma", startDate)
+amerikka.load()
+
+// eurooppa 15.06.1998
+//eurocorporate 14.09.2001
+//euroobligaatio 14.10.1998
+//http://www.seligson.fi/graafit/data.asp?op=global-pharma 17.01.2000
+//http://www.seligson.fi/graafit/data.asp?op=russia 08.03.2000
+//http://www.seligson.fi/graafit/data.asp?op=global-brands    18.06.1998
+//http://www.seligson.fi/graafit/data.asp?op=aasia 29.12.1999
+//http://www.seligson.fi/graafit/data.asp?op=phoebus 10.10.2001
+//http://www.seligson.fi/graafit/data.asp?op=kehittyva 03.09.2010
+//http://www.seligson.fi/graafit/data.asp?op=pohjoisamerikka 29.12.2006
 
 
 def funds = [:]
-funds.put(europe, 0.5)
-funds.put(corporate, 0.5)
+// Osakkeet
+funds.put(europe, 0.2)
+funds.put(russia, 0.2)
+funds.put(phoebus, 0.2)
+funds.put(aasia, 0.2)
+funds.put(brands, 0.05)
+funds.put(pharma, 0.05)
+// Pitkät korot
+funds.put(corporate, 0.05)
+funds.put(obligaatio, 0.05)
 
 
 def dollarCostAveraging(date, fund, fundAllocation, totalValue, totalMonthlyInvestment, target) {
@@ -135,13 +174,35 @@ def valueAveraging(date, fund, fundAllocation, totalValue, totalMonthlyInvestmen
     fund.investToFund(investment, date, "va")
 }
 
+
+
 def swing = new SwingBuilder()
 def frame = swing.frame(title:'Groovy PieChart',
         defaultCloseOperation:WC.EXIT_ON_CLOSE) {
-    gridLayout(cols: 1, rows: 1)
+    //gridLayout(cols: 1, rows: 1)
 
+
+    //flowLayout()
     def data = doInvestments(funds, 600, startDate)
-    panel(id:"Summary") { widget(new ChartPanel(createSummaryChart(data)))}
+
+    panel() {
+        scrollPane(preferredSize: [1000,1000], constraints: context.CENTER) {
+            vbox {
+                funds.keySet().each { iter ->
+                    def fund = iter
+                    if (fund != null) {
+
+                        println "Creating panel for ${fund.name}"
+                        panel(id:fund.name) {widget(new ChartPanel(createChart(fund, "va")))}
+                    }
+                }
+
+                panel(id:"Allocations") { widget(new ChartPanel(createAllocationChart(funds)))}
+                panel(id:"Summary") { widget(new ChartPanel(createSummaryChart(data)))}
+            }
+        }
+    }
+
 
     //panel(id:europe.name + "_va") { widget(new ChartPanel(createChart(europe,"va"))) }
     //panel(id:corporate.name + "_va") { widget(new ChartPanel(createChart(corporate,"va")))}
@@ -150,6 +211,34 @@ def frame = swing.frame(title:'Groovy PieChart',
     //panel(id:corporate.name + "_dca") { widget(new ChartPanel(createChart(corporate,"dca")))}
 
     // Summary
+}
+
+private static JFreeChart createAllocationChart(def funds) {
+    def dataset = new DefaultPieDataset()
+
+
+    funds.keySet().each {
+        dataset.setValue(it.name, it.getValueForDate(new LocalDate(2012,9,20),"va"))
+    }
+
+    JFreeChart chart = ChartFactory.createPieChart(
+            "Allocations",  // chart title
+            dataset,             // data
+            true,               // include legend
+            true,
+            false
+    );
+
+    PiePlot plot = (PiePlot) chart.getPlot();
+    //plot.setLabelFont(new Font("SansSerif", Font.PLAIN, 12));
+    plot.setNoDataMessage("No data available");
+    plot.setCircular(false);
+    plot.setLabelGap(0.02);
+    plot.setLabelGenerator(new StandardPieSectionLabelGenerator(
+            "{0} ({2})", NumberFormat.getNumberInstance(), NumberFormat.getPercentInstance()
+    ));
+
+    return chart;
 }
 
 def doInvestments(funds, totalMonthlyInvestment, startDate) {
@@ -169,6 +258,8 @@ def doInvestments(funds, totalMonthlyInvestment, startDate) {
         def va = 0.0
 
         target = totalMonthlyInvestment * period * Math.pow(1.0 + r, period)
+
+        println "Calculatin for date ${currentDate} with period of ${period} and target of ${target}"
 
         totalInvestments["dca"][currentDate] = 0.0
         totalInvestments["va"][currentDate] = 0.0
