@@ -1,0 +1,4 @@
+# Ignoring IntelliJ Idea related files
+.idea
+*.iml
+atlassian-ide-plugin.xml
