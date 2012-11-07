@@ -125,13 +125,13 @@ def russia = new FundData("http://www.seligson.fi/graafit/data.asp?op=russia", "
 russia.load()
 def brands = new FundData("http://www.seligson.fi/graafit/data.asp?op=global-brands", "Seligson Brands", startDate)
 brands.load()
-def aasia = new FundData("http://www.seligson.fi/graafit/data.asp?op=aasia", "Seligson Pharma", startDate)
+def aasia = new FundData("http://www.seligson.fi/graafit/data.asp?op=aasia", "Seligson Aasia", startDate)
 aasia.load()
-def phoebus = new FundData("http://www.seligson.fi/graafit/data.asp?op=phoebus", "Seligson Pharma", startDate)
+def phoebus = new FundData("http://www.seligson.fi/graafit/data.asp?op=phoebus", "Seligson Phoebus", startDate)
 phoebus.load()
-def kehittyva = new FundData("http://www.seligson.fi/graafit/data.asp?op=kehittyva", "Seligson Pharma", startDate)
+def kehittyva = new FundData("http://www.seligson.fi/graafit/data.asp?op=kehittyva", "Seligson Kehittyvät", startDate)
 kehittyva.load()
-def amerikka = new FundData("http://www.seligson.fi/graafit/data.asp?op=pohjoisamerikka", "Seligson Pharma", startDate)
+def amerikka = new FundData("http://www.seligson.fi/graafit/data.asp?op=pohjoisamerikka", "Seligson Pohjois-amerikka", startDate)
 amerikka.load()
 
 // eurooppa 15.06.1998
