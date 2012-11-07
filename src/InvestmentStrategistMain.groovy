@@ -22,10 +22,10 @@ import org.jfree.data.time.TimeSeriesCollection
 import org.jfree.data.xy.XYDataset
 import org.joda.time.LocalDate
 
-import java.awt.Color
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import org.jfree.chart.renderer.xy.XYBarRenderer
+import org.joda.time.Months
 
 private static JFreeChart createChart(def fund, strategy)
 {
@@ -53,25 +53,57 @@ private static JFreeChart createChart(def fund, strategy)
     return jfreechart;
 }
 
-static XYDataset createVolumeDataset(data) {
-    TimeSeries timeseries = new TimeSeries("Volume", org.jfree.data.time.Day.class);
+private static JFreeChart createSummaryChart(data) {
+    TimeSeriesCollection timeSeriesCollection = new TimeSeriesCollection();
 
-    data.entrySet().each { it ->
+    timeSeriesCollection.addSeries(mapToTimeSeries(data[0]["dca"], "Invested-DCA"))
+    timeSeriesCollection.addSeries(mapToTimeSeries(data[0]["va"], "Invested-VA"))
+    timeSeriesCollection.addSeries(mapToTimeSeries(data[1]["dca"], "NVA-DCA"))
+    timeSeriesCollection.addSeries(mapToTimeSeries(data[1]["va"], "NVA-VA"))
+
+    String s = "Summary";
+    JFreeChart jfreechart = ChartFactory.createTimeSeriesChart(s, "Date", "Price", timeSeriesCollection, true, true, false);
+    XYPlot xyplot = (XYPlot)jfreechart.getPlot();
+    NumberAxis numberaxis = (NumberAxis)xyplot.getRangeAxis();
+    numberaxis.setLowerMargin(0.40000000000000002D);
+    DecimalFormat decimalformat = new DecimalFormat("00.00");
+    numberaxis.setNumberFormatOverride(decimalformat);
+    XYItemRenderer xyitemrenderer = xyplot.getRenderer();
+    xyitemrenderer.setBaseToolTipGenerator(new StandardXYToolTipGenerator("{0}: ({1}, {2})", new SimpleDateFormat("d-MMM-yyyy"), new DecimalFormat("0.00")));
+
+    return jfreechart;
+}
+
+static XYDataset createVolumeDataset(data) {
+//    TimeSeries timeseries = new TimeSeries("Volume", org.jfree.data.time.Day.class);
+//
+//    data.entrySet().each { it ->
+//        def date = it.key
+//        timeseries.add(new Day(date.dayOfMonth, date.monthOfYear, date.year), it.value)
+//    }
+
+    return new TimeSeriesCollection(mapToTimeSeries(data, "Volume"))
+}
+
+private static mapToTimeSeries(map, name) {
+    TimeSeries timeseries = new TimeSeries(name, org.jfree.data.time.Day.class);
+
+    map.entrySet().each { it ->
         def date = it.key
         timeseries.add(new Day(date.dayOfMonth, date.monthOfYear, date.year), it.value)
     }
 
-    return new TimeSeriesCollection(timeseries)
+    return timeseries
 }
 
 static XYDataset createPriceDataset(data) {
-    TimeSeries timeseries = new TimeSeries("Price", org.jfree.data.time.Day.class);
-
-    data.entrySet().each { it ->
-        def date = it.key
-        timeseries.add(new Day(date.dayOfMonth, date.monthOfYear, date.year), it.value)
-    }
-    return new TimeSeriesCollection(timeseries)
+//    TimeSeries timeseries = new TimeSeries("Price", org.jfree.data.time.Day.class);
+//
+//    data.entrySet().each { it ->
+//        def date = it.key
+//        timeseries.add(new Day(date.dayOfMonth, date.monthOfYear, date.year), it.value)
+//    }
+    return new TimeSeriesCollection(mapToTimeSeries(data, "Price"))
 }
 
 
@@ -81,6 +113,7 @@ def europe = new FundData("http://www.seligson.fi/graafit/data.asp?op=eurooppa",
 europe.load()
 def corporate = new FundData("http://www.seligson.fi/graafit/data.asp?op=eurocorporate", "Seligson Corporate Bond", startDate)
 corporate.load()
+
 
 def funds = [:]
 funds.put(europe, 0.5)
@@ -105,15 +138,18 @@ def valueAveraging(date, fund, fundAllocation, totalValue, totalMonthlyInvestmen
 def swing = new SwingBuilder()
 def frame = swing.frame(title:'Groovy PieChart',
         defaultCloseOperation:WC.EXIT_ON_CLOSE) {
-    gridLayout(cols: 2, rows: 2)
+    gridLayout(cols: 1, rows: 1)
 
     def data = doInvestments(funds, 600, startDate)
+    panel(id:"Summary") { widget(new ChartPanel(createSummaryChart(data)))}
 
-    panel(id:europe.name + "_va") { widget(new ChartPanel(createChart(europe,"va"))) }
-    panel(id:corporate.name + "_va") { widget(new ChartPanel(createChart(corporate,"va")))}
+    //panel(id:europe.name + "_va") { widget(new ChartPanel(createChart(europe,"va"))) }
+    //panel(id:corporate.name + "_va") { widget(new ChartPanel(createChart(corporate,"va")))}
 
-    panel(id:europe.name + "_dca") { widget(new ChartPanel(createChart(europe,"dca"))) }
-    panel(id:corporate.name + "_dca") { widget(new ChartPanel(createChart(corporate,"dca")))}
+    //panel(id:europe.name + "_dca") { widget(new ChartPanel(createChart(europe,"dca"))) }
+    //panel(id:corporate.name + "_dca") { widget(new ChartPanel(createChart(corporate,"dca")))}
+
+    // Summary
 }
 
 def doInvestments(funds, totalMonthlyInvestment, startDate) {
@@ -123,18 +159,23 @@ def doInvestments(funds, totalMonthlyInvestment, startDate) {
     def portfolioProgress = ["dca":[:], "va":[:]]
     def totalInvestments = ["dca":[:], "va":[:]]
 
-
+    // VA related
+    def monthsBetween = Months.monthsBetween(startDate, endDay).getMonths()
+    def r = (0.8/monthsBetween)
+    def period = 1
 
     while (currentDate.compareTo(endDay) < 0) {
         def dca = 0.0
         def va = 0.0
 
+        target = totalMonthlyInvestment * period * Math.pow(1.0 + r, period)
+
+        totalInvestments["dca"][currentDate] = 0.0
+        totalInvestments["va"][currentDate] = 0.0
+
         for (it in funds.entrySet()) {
             dca += dollarCostAveraging(currentDate, it.key, it.value, 0, totalMonthlyInvestment, target)
             va += valueAveraging(currentDate, it.key, it.value, 0, totalMonthlyInvestment, target)
-
-            if (totalInvestments["dca"][currentDate] == null) totalInvestments["dca"][currentDate] = 0.0
-            if (totalInvestments["va"][currentDate] == null) totalInvestments["va"][currentDate] = 0.0
 
             totalInvestments["dca"][currentDate] += it.key.getInvestedAmount(currentDate, "dca")
             totalInvestments["va"][currentDate] += it.key.getInvestedAmount(currentDate, "va")
@@ -143,9 +184,10 @@ def doInvestments(funds, totalMonthlyInvestment, startDate) {
         portfolioProgress["dca"][currentDate] = dca
         portfolioProgress["va"][currentDate] = va
 
-        target += totalMonthlyInvestment
+        //target += totalMonthlyInvestment
 
         currentDate = currentDate.plusMonths(1)
+        period++
     }
 
     [totalInvestments, portfolioProgress]
