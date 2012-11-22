@@ -148,10 +148,11 @@ amerikka.load()
 
 def funds = [:]
 // Osakkeet
-funds.put(europe, 0.2)
-funds.put(russia, 0.2)
-funds.put(phoebus, 0.2)
-funds.put(aasia, 0.2)
+funds.put(europe, 0.2333)
+funds.put(russia, 0.1)
+funds.put(phoebus, 0.2333)
+funds.put(aasia, 0.2333)
+//funds.put(amerikka, 0.2)
 funds.put(brands, 0.05)
 funds.put(pharma, 0.05)
 // Pitkät korot
@@ -186,7 +187,7 @@ def frame = swing.frame(title:'Groovy PieChart',
     def data = doInvestments(funds, 600, startDate)
 
     panel() {
-        scrollPane(preferredSize: [1000,1000], constraints: context.CENTER) {
+        scrollPane(preferredSize: [1000,700], constraints: context.CENTER) {
             vbox {
                 funds.keySet().each { iter ->
                     def fund = iter
@@ -218,7 +219,7 @@ private static JFreeChart createAllocationChart(def funds) {
 
 
     funds.keySet().each {
-        dataset.setValue(it.name, it.getValueForDate(new LocalDate(2012,9,20),"va"))
+        dataset.setValue(it.name, it.getValueForDate(new LocalDate(2012,10,20),"va"))
     }
 
     JFreeChart chart = ChartFactory.createPieChart(
@@ -250,16 +251,18 @@ def doInvestments(funds, totalMonthlyInvestment, startDate) {
 
     // VA related
     def monthsBetween = Months.monthsBetween(startDate, endDay).getMonths()
-    def r = (0.8/monthsBetween)
+    def r = (0.1/monthsBetween)
     def period = 1
+    def R = Math.pow(1.09, 1.0/12)
 
     while (currentDate.compareTo(endDay) < 0) {
         def dca = 0.0
         def va = 0.0
 
-        target = totalMonthlyInvestment * period * Math.pow(1.0 + r, period)
 
-        println "Calculatin for date ${currentDate} with period of ${period} and target of ${target}"
+        target = totalMonthlyInvestment * period * Math.pow(R, period)
+
+        println "Calculatin for date ${currentDate} with period of ${period} and target of ${target} and R of ${R}"
 
         totalInvestments["dca"][currentDate] = 0.0
         totalInvestments["va"][currentDate] = 0.0
