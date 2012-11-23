@@ -26,11 +26,8 @@ class ValueAveragingInvestmentStrategy extends AbstractInvestmentStrategy {
         def fundsTarget = target * allocation
         def fundValue = investmentDatas[fund].getTotalValueByDate(date)
         def investment = fundsTarget - fundValue
-        investment = investment < 0.0 ? 0.0 : investment
+        //investment = investment < 0.0 ? 0.0 : investment
 
-        def sharePrice = fund.getSharePriceForDate(date)
-        def nbrShares = investment / sharePrice
-
-        investmentDatas[fund].put(date, nbrShares, investment)
+        buyOrSell(fund, date, investment)
     }
 }

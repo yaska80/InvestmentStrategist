@@ -30,4 +30,7 @@ class InvestmentsData {
         entry.value * sharePrice
     }
 
+    def getSharesData() {
+        shares
+    }
 }
