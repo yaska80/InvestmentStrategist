@@ -19,15 +19,16 @@ class ValueAveragingInvestmentStrategy extends AbstractInvestmentStrategy {
 
 
     @Override
-    def invest(FundData fund, LocalDate date, Double amount, Double allocation) {
+    def invest(FundData fund, LocalDate date, Double amount, Double allocation, Double portfolioTotal, InvestmentsData data) {
         def currentPeriod = Months.monthsBetween(startDate, date)
         def target = amount * currentPeriod * Math.pow(growthRatePerPeriod, currentPeriod)
 
         def fundsTarget = target * allocation
-        def fundValue = investmentDatas[fund].getTotalValueByDate(date)
+        def fundValue = data.getTotalValueByDate(date)
         def investment = fundsTarget - fundValue
         //investment = investment < 0.0 ? 0.0 : investment
 
-        buyOrSell(fund, date, investment)
+        //buyOrSell(fund, date, investment)
+        return investment
     }
 }
