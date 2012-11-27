@@ -35,7 +35,7 @@ class Portfolio {
             def fund = it[0]
             def allocation = it[1]
 
-            def investmentSuggestion = investmentStrategy.invest(fund, date, investmentAmount, allocation, portfolioTotal)
+            def investmentSuggestion = investmentStrategy.invest(fund, date, investmentAmount, allocation, portfolioData[fund])
             suggestions[fund] = investmentSuggestion
         }
 
