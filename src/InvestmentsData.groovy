@@ -1,4 +1,4 @@
-
+import org.joda.time.LocalDate
 /**
  * Created with IntelliJ IDEA.
  * User: jaakkosjoholm
@@ -7,30 +7,28 @@
  * To change this template use File | Settings | File Templates.
  */
 class InvestmentsData {
-    def shares = [:]
-    def investments = [:]
+    Map entries
 
-    def put(date, sharesAquired, invested) {
-        shares[date] = sharesAquired
-        investments[date] = invested
+    def put(LocalDate date, Double sharesAquired, Double invested) {
+        entries[date] = new Entry(shares: sharesAquired, investment: invested)
     }
 
-    def getTotalInvestedByDate(date) {
-        def entry = investments.entrySet().find {it.key.compareTo(date) >= 0}
-        entry.value
+    Double getTotalInvestedByDate(LocalDate date) {
+        entries.findAll { it.key.compareTo(date) >= 0 }.values().sum { it.investment } as Double
     }
 
-    def getTotalSharesByDate(date) {
-        def entry = shares.entrySet().find {it.key.compareTo(date) >= 0}
-        entry.value
+    Double getTotalSharesByDate(LocalDate date) {
+        entries.findAll { it.key.compareTo(date) >= 0 }.values().sum { it.shares } as Double
     }
 
-    def getTotalValueByDate(date, sharePrice) {
-        def entry = shares.entrySet().find {it.key.compareTo(date) >= 0}
-        entry.value * sharePrice
+    Double getTotalValueByDate(date, Double sharePrice) {
+        def totalShares = getTotalSharesByDate(date)
+        totalShares * sharePrice
     }
 
-    def getSharesData() {
-        shares
-    }
+}
+
+private class Entry {
+    Double shares
+    Double investment
 }

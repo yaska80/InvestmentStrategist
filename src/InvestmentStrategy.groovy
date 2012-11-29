@@ -7,9 +7,6 @@ import org.joda.time.LocalDate
  * To change this template use File | Settings | File Templates.
  */
 public interface InvestmentStrategy {
-    def invest(FundData fund, LocalDate date, Double amount, Double allocation, Double portfolioTotal, InvestmentsData data)
+    def invest(FundData fund, LocalDate date, Double amount, Double portfolioTotal, InvestmentsData data)
 
-    def getInvestedToFundData(FundData fund)
-
-    def getPortfolioTotalValueByDate(LocalDate date)
 }

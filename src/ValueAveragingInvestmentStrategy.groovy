@@ -7,34 +7,24 @@ import org.joda.time.Months
  * Time: 17.36
  * To change this template use File | Settings | File Templates.
  */
-class ValueAveragingInvestmentStrategy extends AbstractInvestmentStrategy {
+class ValueAveragingInvestmentStrategy implements InvestmentStrategy {
 
-    def growthRatePerPeriod = 0.0
+    def growthRatePerPeriod = 0.0D
     def startDate = new LocalDate()
     def rebalancingStrategy
 
     def ValueAveragingInvestmentStrategy(startDate, annualGrowthRate, rebalancingStrategy = null) {
-        growthRatePerPeriod = Math.pow(1 + annualGrowthRate, 1/12)
+        growthRatePerPeriod = (1 + annualGrowthRate) ** 1/12
         this.startDate = startDate
         this.rebalancingStrategy = rebalancingStrategy
     }
 
 
     @Override
-    def invest(FundData fund, LocalDate date, Double amount, Double allocation, Double portfolioTotal, InvestmentsData data) {
+    def invest(FundData fund, LocalDate date, Double amount, Double portfolioTotal, InvestmentsData data) {
         def currentPeriod = Months.monthsBetween(startDate, date).getMonths()
-        def target = amount * currentPeriod * Math.pow(growthRatePerPeriod, currentPeriod)
+        def target = amount * currentPeriod * (growthRatePerPeriod ** currentPeriod)
 
-        def fundsTarget = target * allocation
-        def fundValue = data.getTotalValueByDate(date)
-        def investment = fundsTarget - fundValue
-
-        //rebalancingStrategy.rebalance()
-
-
-        //investment = investment < 0.0 ? 0.0 : investment
-
-        //buyOrSell(fund, date, investment)
-        return investment
+        return rebalancingStrategy.rebalance(fund, fundValue, target)
     }
 }

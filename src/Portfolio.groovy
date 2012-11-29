@@ -1,4 +1,4 @@
-
+import org.joda.time.LocalDate
 /**
  * Created with IntelliJ IDEA.
  * User: jaakkosjoholm
@@ -7,44 +7,47 @@
  * To change this template use File | Settings | File Templates.
  */
 class Portfolio {
-    def fundsAndAllocations
-    def investmentStrategy
-    def rebalanceStrategy
-    def investmentAmount
+    List funds
+    InvestmentStrategy investmentStrategy
+    Double investmentAmountPerPeriod
 
-    def portfolioData = [:]
+    Map portfolioData = [:]
     def buffer = 0.0
+    def sellStrategy
 
-
-    def Portfolio(def fundsAndAllocations, def investmentStrategy, def rebalanceStrategy, def investmentAmount) {
-        this.fundsAndAllocations = fundsAndAllocations
-
-        fundsAndAllocations.each {
-            portfolioData[it[0]] = new InvestmentsData()
-        }
-
-
+    Portfolio(List funds, InvestmentStrategy investmentStrategy, Double investmentAmountPerPeriod, sellStrategy) {
+        this.funds = funds
         this.investmentStrategy = investmentStrategy
-        this.rebalanceStrategy = rebalanceStrategy
-        this.investmentAmount = investmentAmount
+        this.investmentAmountPerPeriod = investmentAmountPerPeriod
+        this.sellStrategy = sellStrategy
+
+        funds.each {
+            portfolioData[it] = new InvestmentsData()
+        }
     }
 
-    def doIntestmentRound(date) {
-        def suggestions = [:]
-        fundsAndAllocations.each {
-            def fund = it[0]
-            def allocation = it[1]
+    def doIntestmentRound(LocalDate date) {
+        def suggestions = []
+        def portfolioValue = calculatePortfolioValue(date)
 
-            def investmentSuggestion = investmentStrategy.invest(fund, date, investmentAmount, allocation, portfolioData[fund])
-            suggestions[fund] = investmentSuggestion
+        funds.each { fund ->
+            def investmentSuggestion = investmentStrategy.invest(fund, date, investmentAmountPerPeriod, portfolioValue, portfolioData[fund])
+            suggestions << investmentSuggestion
         }
 
-        def actualActs = rebalanceStrategy.doRebalancing(suggestions)
+        suggestions.sort().each {
+            if (it < 0 ) {
+                sellStrategy.doSell(portfolioData, fund, date, investmentAmountPerPeriod)
+            }
+        }
 
     }
 
-
-
+    Double calculatePortfolioValue(LocalDate date) {
+        portfolioData.collect { fund, data ->
+            data.getTotalValueByDate(date, fund.getSharePriceForDate(date))
+        }.sum() as Double
+    }
 
 
 }

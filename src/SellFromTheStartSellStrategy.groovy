@@ -9,7 +9,7 @@ class SellFromTheStartSellStrategy {
         def sharesToSell = amount / sharePrice
         def investmentData = investmentDatas[fund]
 
-        def iter = investmentData.entrySet.iterator
+        def iter = investmentData.iterator
 
         while (iter.hasNext) {
             def entry = iter.next

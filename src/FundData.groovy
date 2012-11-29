@@ -114,9 +114,9 @@ class FundData {
         return sum
     }
 
-    public getSharePriceForDate(date) {
+    Double getSharePriceForDate(date) {
         def entry = monthlyData.entrySet().find {it.key.compareTo(date) >= 0}
-        entry.value
+        return entry.value
     }
 
     private parseLine(line) {
