@@ -7,22 +7,26 @@ import org.joda.time.LocalDate
  * To change this template use File | Settings | File Templates.
  */
 class InvestmentsData {
-    Map entries
+    Map entries = [:]
 
     def put(LocalDate date, Double sharesAquired, Double invested) {
         entries[date] = new Entry(shares: sharesAquired, investment: invested)
     }
 
     Double getTotalInvestedByDate(LocalDate date) {
-        entries.findAll { it.key.compareTo(date) >= 0 }.values().sum { it.investment } as Double
+        entries.findAll { it.key.compareTo(date) <= 0 }.values().sum { it.investment } as Double
     }
 
     Double getTotalSharesByDate(LocalDate date) {
-        entries.findAll { it.key.compareTo(date) >= 0 }.values().sum { it.shares } as Double
+        entries.findAll {
+            it.key.compareTo(date) <= 0
+        }.values().sum {
+            it.shares
+        } as Double
     }
 
     Double getTotalValueByDate(date, Double sharePrice) {
-        def totalShares = getTotalSharesByDate(date)
+        Double totalShares = getTotalSharesByDate(date) ?: 0.0D
         totalShares * sharePrice
     }
 

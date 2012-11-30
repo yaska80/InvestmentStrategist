@@ -14,7 +14,7 @@ class ValueAveragingInvestmentStrategy implements InvestmentStrategy {
     def rebalancingStrategy
 
     def ValueAveragingInvestmentStrategy(startDate, annualGrowthRate, rebalancingStrategy = null) {
-        growthRatePerPeriod = (1 + annualGrowthRate) ** 1/12
+        growthRatePerPeriod = (1.0 + annualGrowthRate) ** (1.0/12.0)
         this.startDate = startDate
         this.rebalancingStrategy = rebalancingStrategy
     }
@@ -24,6 +24,8 @@ class ValueAveragingInvestmentStrategy implements InvestmentStrategy {
     def invest(FundData fund, LocalDate date, Double amount, Double portfolioTotal, InvestmentsData data) {
         def currentPeriod = Months.monthsBetween(startDate, date).getMonths()
         def target = amount * currentPeriod * (growthRatePerPeriod ** currentPeriod)
+        def sharePrice = fund.getSharePriceForDate(date)
+        def fundValue = data.getTotalValueByDate(date, sharePrice)
 
         return rebalancingStrategy.rebalance(fund, fundValue, target)
     }

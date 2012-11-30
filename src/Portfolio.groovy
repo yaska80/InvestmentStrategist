@@ -26,18 +26,29 @@ class Portfolio {
         }
     }
 
-    def doIntestmentRound(LocalDate date) {
-        def suggestions = []
+    def doInvestmentRound(LocalDate date) {
+        def suggestions = [:]
         def portfolioValue = calculatePortfolioValue(date)
 
         funds.each { fund ->
-            def investmentSuggestion = investmentStrategy.invest(fund, date, investmentAmountPerPeriod, portfolioValue, portfolioData[fund])
-            suggestions << investmentSuggestion
+            def investmentSuggestion =
+                investmentStrategy.invest(fund as FundData, date,
+                        investmentAmountPerPeriod, portfolioValue,
+                        portfolioData[fund] as InvestmentsData)
+
+            suggestions[fund] = investmentSuggestion
         }
 
-        suggestions.sort().each {
-            if (it < 0 ) {
-                sellStrategy.doSell(portfolioData, fund, date, investmentAmountPerPeriod)
+        suggestions.sort {a, b ->
+            a.value <=> b.value
+        }.each { fund, suggestion ->
+            if (suggestion < 0 ) {
+                buffer += sellStrategy.doSell(portfolioData[fund], fund, date, suggestion * -1)
+            } else {
+                def sharePrice = (fund as FundData).getSharePriceForDate(date)
+                Double shares = suggestion / sharePrice
+
+                (portfolioData[fund] as InvestmentsData).put(date as LocalDate, shares, suggestion as Double)
             }
         }
 
@@ -49,5 +60,9 @@ class Portfolio {
         }.sum() as Double
     }
 
-
+    Double calculatePortfolioInvested(LocalDate date) {
+        portfolioData.collect { fund, data ->
+            data.getTotalInvestedByDate(date)
+        }.sum() as Double
+    }
 }

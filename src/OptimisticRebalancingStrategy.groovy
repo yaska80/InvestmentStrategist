@@ -7,10 +7,10 @@
  * To change this template use File | Settings | File Templates.
  */
 class OptimisticRebalancingStrategy {
-    List fundSettings
+    Map fundSettings
 
     Double rebalance(FundData fund, Double fundCurrentValue, Double portfolioTargetValue) {
-        FundRebalancingSettings settings = fundSettings[fund]
+        FundRebalancingSettings settings = fundSettings[fund] as FundRebalancingSettings
 
         Double fundTargetValue = portfolioTargetValue * settings.allocation
         Double rebalancedInvestment = 0.0
@@ -18,7 +18,7 @@ class OptimisticRebalancingStrategy {
         Double lowLimitTarget = fundTargetValue * (1 - settings.lowLimit)
 
         if (fundCurrentValue > highLimitTarget) {
-            rebalancedInvestment = fundCurrentValue - fundTargetValue
+            rebalancedInvestment = fundTargetValue - fundCurrentValue
         } else if (fundCurrentValue < lowLimitTarget) {
             rebalancedInvestment = fundTargetValue - fundCurrentValue
         }
@@ -28,13 +28,25 @@ class OptimisticRebalancingStrategy {
 }
 
 class ToAllocationRebalancingStrategy {
-    List fundSettings
+    Map fundSettings
 
     Double rebalance(FundData fund, Double fundCurrentValue, Double portfolioTargetValue) {
-        FundRebalancingSettings settings = fundSettings[fund]
+        FundRebalancingSettings settings = fundSettings[fund] as FundRebalancingSettings
 
         Double fundTargetValue = portfolioTargetValue * settings.allocation
         return fundTargetValue - fundCurrentValue
+    }
+}
+
+class NoSellRebalancingStrategy {
+    Map fundSettings
+
+    Double rebalance(FundData fund, Double fundCurrentValue, Double portfolioTargetValue) {
+        FundRebalancingSettings settings = fundSettings[fund] as FundRebalancingSettings
+        Double fundTargetValue = portfolioTargetValue * settings.allocation
+        Double investment = fundTargetValue - fundCurrentValue
+
+        return investment < 0.0 ? 0.0 : investment
     }
 }
 

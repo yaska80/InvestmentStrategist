@@ -101,12 +101,6 @@ private static mapToTimeSeries(map, name) {
 }
 
 static XYDataset createPriceDataset(data) {
-//    TimeSeries timeseries = new TimeSeries("Price", org.jfree.data.time.Day.class);
-//
-//    data.entrySet().each { it ->
-//        def date = it.key
-//        timeseries.add(new Day(date.dayOfMonth, date.monthOfYear, date.year), it.value)
-//    }
     return new TimeSeriesCollection(mapToTimeSeries(data, "Price"))
 }
 
@@ -203,15 +197,6 @@ def frame = swing.frame(title:'Groovy PieChart',
             }
         }
     }
-
-
-    //panel(id:europe.name + "_va") { widget(new ChartPanel(createChart(europe,"va"))) }
-    //panel(id:corporate.name + "_va") { widget(new ChartPanel(createChart(corporate,"va")))}
-
-    //panel(id:europe.name + "_dca") { widget(new ChartPanel(createChart(europe,"dca"))) }
-    //panel(id:corporate.name + "_dca") { widget(new ChartPanel(createChart(corporate,"dca")))}
-
-    // Summary
 }
 
 private static JFreeChart createAllocationChart(def funds) {
