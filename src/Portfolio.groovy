@@ -39,19 +39,17 @@ class Portfolio {
             suggestions[fund] = investmentSuggestion
         }
 
-        suggestions.sort {a, b ->
-            a.value <=> b.value
-        }.each { fund, suggestion ->
-            if (suggestion < 0 ) {
-                buffer += sellStrategy.doSell(portfolioData[fund], fund, date, suggestion * -1)
-            } else {
-                def sharePrice = (fund as FundData).getSharePriceForDate(date)
-                Double shares = suggestion / sharePrice
+        suggestions.sort {a, b -> a.value <=> b.value }
+            .each { fund, suggestion ->
+                if (suggestion < 0 ) {
+                    buffer += sellStrategy.doSell(portfolioData[fund], fund, date, suggestion * -1)
+                } else {
+                    def sharePrice = (fund as FundData).getSharePriceForDate(date)
+                    Double shares = suggestion / sharePrice
 
-                (portfolioData[fund] as InvestmentsData).put(date as LocalDate, shares, suggestion as Double)
+                    (portfolioData[fund] as InvestmentsData).put(date as LocalDate, shares, suggestion as Double)
+                }
             }
-        }
-
     }
 
     Double calculatePortfolioValue(LocalDate date) {
