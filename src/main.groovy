@@ -21,7 +21,7 @@ import org.jfree.data.time.Day
  */
 
 
-def startDate = new LocalDate(2002,1,20)
+def startDate = new LocalDate(2002,1,7)
 
 FundData europe = new FundData("http://www.seligson.fi/graafit/data.asp?op=eurooppa", "Seligson Eurooppa", startDate)
 FundData corporate = new FundData("http://www.seligson.fi/graafit/data.asp?op=eurocorporate", "Seligson Corporate Bond", startDate)
@@ -36,10 +36,10 @@ def amerikka = new FundData("http://www.seligson.fi/graafit/data.asp?op=pohjoisa
 
 Map funds = [:]
 // Osakkeet
-funds.put(europe, 0.2333)
+funds.put(europe, 0.3)
 funds.put(russia, 0.1)
-funds.put(phoebus, 0.2333)
-funds.put(aasia, 0.2333)
+funds.put(phoebus, 0.3)
+funds.put(aasia, 0.1)
 //funds.put(amerikka, 0.2)
 funds.put(brands, 0.05)
 funds.put(pharma, 0.05)
@@ -49,36 +49,56 @@ funds.put(obligaatio, 0.05)
 
 Map fundSettings = [:]
 
+def fortnightPeriod = {currentDate ->
+    (currentDate as LocalDate).plusWeeks(2)
+}
+def monthlyPeriod = {currentDate ->
+    (currentDate as LocalDate).plusMonths(1)
+}
+
+def period = fortnightPeriod
+//def period = monthlyPeriod
+
 funds.each { fund, allocation ->
-    fund.load()
-    fundSettings[fund] = new FundRebalancingSettings(highLimit: 0.1, lowLimit: 0.1, allocation: allocation)
+    fund.load(period)
+    fundSettings[fund] = new FundRebalancingSettings(highLimit: 0.1, lowLimit: 0.05, allocation: allocation)
 }
 
 OptimisticRebalancingStrategy ors = new OptimisticRebalancingStrategy(fundSettings: fundSettings)
 //NoSellRebalancingStrategy ors = new NoSellRebalancingStrategy(fundSettings: fundSettings)
 
-ValueAveragingInvestmentStrategy invStrat = new ValueAveragingInvestmentStrategy(startDate, 0.08, ors)
+ValueAveragingInvestmentStrategy invStrat = new ValueAveragingInvestmentStrategy(startDate, 0.1, 26.0, ors)
 //DollarCostAveregingInvestmentStrategy invStrat = new DollarCostAveregingInvestmentStrategy(rebalancingStrategy: ors)
 
-SellFromTheStartSellStrategy sellStrat = new SellFromTheStartSellStrategy()
+//SellFromTheStartSellStrategy sellStrat = new SellFromTheStartSellStrategy()
+LeastAmountOfProfitSellStrategy sellStrat = new LeastAmountOfProfitSellStrategy()
 
-Portfolio portfolio = new Portfolio(funds.keySet().asList(), invStrat, 600, sellStrat)
+Portfolio portfolio = new Portfolio(funds.keySet().asList(), invStrat, 300, sellStrat)
 
 LocalDate currentDate = startDate
 def endDate = new LocalDate()
 def data = [["va":[:]],["va":[:]]]
+def lastInvested = 0.0
+def lastValue = 0.0
 
 while (currentDate.compareTo(endDate) < 0) {
     portfolio.doInvestmentRound(currentDate)
 
-    data[0]["va"][currentDate] = portfolio.calculatePortfolioInvested(currentDate)
-    data[1]["va"][currentDate] = portfolio.calculatePortfolioValue(currentDate)
+    lastInvested = portfolio.calculatePortfolioInvested(currentDate)
+    lastValue = portfolio.calculatePortfolioValue(currentDate)
+    data[0]["va"][currentDate] = lastInvested
+    data[1]["va"][currentDate] = lastValue
 
-    currentDate = currentDate.plusMonths(1)
+    currentDate = period.call(currentDate)
 }
 
 println "Buffer was at the end ${portfolio.buffer}"
 println "Total Tax Paid ${sellStrat.totalTaxPaid}"
+println "End invested $lastInvested"
+println "End value $lastValue"
+println "End value with buffer ${lastValue + portfolio.buffer}"
+println "Total profit at the end ${((lastValue)/lastInvested-1)*100}%"
+println "Total profit at the end with buffer ${((lastValue+portfolio.buffer)/lastInvested-1)*100}%"
 
 static XYDataset createVolumeDataset(data) {
     return new TimeSeriesCollection(mapToTimeSeries(data, "Volume"))
@@ -102,7 +122,7 @@ static XYDataset createPriceDataset(data) {
 
 JFreeChart createChart(FundData fund, String strategy)
 {
-    XYDataset xydataset = createPriceDataset(fund.monthlyData);
+    XYDataset xydataset = createPriceDataset(fund.periodicalData);
     String s = "${fund.name} (${strategy.toUpperCase()})";
     JFreeChart jfreechart = ChartFactory.createTimeSeriesChart(s, "Date", "Price", xydataset, true, true, false);
     XYPlot xyplot = (XYPlot)jfreechart.getPlot();

@@ -33,7 +33,7 @@ import java.text.NumberFormat
 
 private static JFreeChart createChart(def fund, strategy)
 {
-    XYDataset xydataset = createPriceDataset(fund.monthlyData);
+    XYDataset xydataset = createPriceDataset(fund.periodicalData);
     String s = "${fund.name} (${strategy.toUpperCase()})";
     JFreeChart jfreechart = ChartFactory.createTimeSeriesChart(s, "Date", "Price", xydataset, true, true, false);
     XYPlot xyplot = (XYPlot)jfreechart.getPlot();
@@ -106,27 +106,35 @@ static XYDataset createPriceDataset(data) {
 
 
 def startDate = new LocalDate(2002,1,20)
+def fortnightPeriod = {currentDate ->
+    (currentDate as LocalDate).plusWeeks(2)
+}
+def monthlyPeriod = {currentDate ->
+    (currentDate as LocalDate).plusMonths(1)
+}
+
+def period = monthlyPeriod
 
 def europe = new FundData("http://www.seligson.fi/graafit/data.asp?op=eurooppa", "Seligson Eurooppa", startDate)
-europe.load()
+europe.load(period)
 def corporate = new FundData("http://www.seligson.fi/graafit/data.asp?op=eurocorporate", "Seligson Corporate Bond", startDate)
-corporate.load()
+corporate.load(period)
 def obligaatio = new FundData("http://www.seligson.fi/graafit/data.asp?op=euroobligaatio", "Seligson Obligaatio", startDate)
-obligaatio.load()
+obligaatio.load(period)
 def pharma = new FundData("http://www.seligson.fi/graafit/data.asp?op=global-pharma", "Seligson Pharma", startDate)
-pharma.load()
+pharma.load(period)
 def russia = new FundData("http://www.seligson.fi/graafit/data.asp?op=russia", "Seligson Russia", startDate)
-russia.load()
+russia.load(period)
 def brands = new FundData("http://www.seligson.fi/graafit/data.asp?op=global-brands", "Seligson Brands", startDate)
-brands.load()
+brands.load(period)
 def aasia = new FundData("http://www.seligson.fi/graafit/data.asp?op=aasia", "Seligson Aasia", startDate)
-aasia.load()
+aasia.load(period)
 def phoebus = new FundData("http://www.seligson.fi/graafit/data.asp?op=phoebus", "Seligson Phoebus", startDate)
-phoebus.load()
+phoebus.load(period)
 def kehittyva = new FundData("http://www.seligson.fi/graafit/data.asp?op=kehittyva", "Seligson Kehittyvät", startDate)
-kehittyva.load()
+kehittyva.load(period)
 def amerikka = new FundData("http://www.seligson.fi/graafit/data.asp?op=pohjoisamerikka", "Seligson Pohjois-amerikka", startDate)
-amerikka.load()
+amerikka.load(period)
 
 // eurooppa 15.06.1998
 //eurocorporate 14.09.2001

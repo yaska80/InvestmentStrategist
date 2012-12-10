@@ -9,12 +9,16 @@ import org.joda.time.LocalDate
 class DollarCostAveregingInvestmentStrategy implements InvestmentStrategy
 {
     def rebalancingStrategy
+    def period = 0
 
     @Override
     def invest(FundData fund, LocalDate date, Double amount, Double portfolioTotal, InvestmentsData data) {
         Double sharePrice = fund.getSharePriceForDate(date)
         def fundCurValue = data.getTotalValueByDate(date, sharePrice)
 
-        return rebalancingStrategy.rebalance(fund, fundCurValue, portfolioTotal + amount)
+        def result = rebalancingStrategy.rebalance(fund, fundCurValue, portfolioTotal + 600)
+        period += 1
+
+        return result
     }
 }

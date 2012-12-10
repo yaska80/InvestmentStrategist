@@ -18,7 +18,7 @@ class FundData {
     def name
     def startDate
     def data
-    def monthlyData
+    def periodicalData
 
     private static final pattern = ~/(\d{2})\.(\d{2})\.(\d{4});(\d+\.\d+)/
 
@@ -29,7 +29,7 @@ class FundData {
         this.startDate = startDate
     }
 
-    def load() {
+    def load(Closure nextPeriod) {
         def http = new HTTPBuilder(httpAddress)
         data = [:]
 
@@ -52,24 +52,24 @@ class FundData {
         }
 */
 
-        initMonthlyData(data)
+        initMonthlyData(data, nextPeriod)
 
         /*monthlyData.entrySet().each {it ->
             println "${it.key};${it.value}"
         }*/
     }
 
-    private initMonthlyData(def data) {
+    private initMonthlyData(def data, Closure nextPeriod) {
         def firstEntryDate = data.keySet().iterator().next()
 
         def currentTargetDate = startDate.compareTo(firstEntryDate) >= 0 ? startDate : firstEntryDate
-        monthlyData = [:]
+        periodicalData = [:]
 
         for (def it : data.entrySet()) {
             def comparison = it.key.compareTo(currentTargetDate)
             if (comparison >= 0) {
-                monthlyData[it.key] = it.value
-                currentTargetDate = currentTargetDate.plusMonths(1)
+                periodicalData[it.key] = it.value
+                currentTargetDate = nextPeriod.call(currentTargetDate)
             }
         }
     }
@@ -78,7 +78,7 @@ class FundData {
     def investedAmounts = [:]
 
     public investToFund(amount, date, strategy) {
-        def entry = monthlyData.entrySet().find {it.key.compareTo(date) >= 0}
+        def entry = periodicalData.entrySet().find {it.key.compareTo(date) >= 0}
 
         if (shares[strategy] == null) shares[strategy] = [:]
         if (investedAmounts[strategy] == null) investedAmounts[strategy] = [:]
@@ -92,7 +92,7 @@ class FundData {
     }
 
     public getValueForDate(date, strategy) {
-        def entry = monthlyData.entrySet().find {it.key.compareTo(date) >= 0}
+        def entry = periodicalData.entrySet().find {it.key.compareTo(date) >= 0}
         def sharePrice = entry.value
 
         if (entry == null) return 0.0
@@ -115,7 +115,7 @@ class FundData {
     }
 
     Double getSharePriceForDate(date) {
-        def entry = monthlyData.entrySet().find {it.key.compareTo(date) >= 0}
+        def entry = periodicalData.entrySet().find {it.key.compareTo(date) >= 0}
         return entry.value
     }
 

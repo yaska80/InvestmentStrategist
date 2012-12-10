@@ -14,6 +14,7 @@ class Portfolio {
     Map portfolioData = [:]
     def buffer = 0.0
     def sellStrategy
+    def pediod
 
     Portfolio(List funds, InvestmentStrategy investmentStrategy, Double investmentAmountPerPeriod, sellStrategy) {
         this.funds = funds
@@ -30,6 +31,8 @@ class Portfolio {
         def suggestions = [:]
         def portfolioValue = calculatePortfolioValue(date)
 
+        buffer += investmentAmountPerPeriod
+
         funds.each { fund ->
             def investmentSuggestion =
                 investmentStrategy.invest(fund as FundData, date,
@@ -40,14 +43,15 @@ class Portfolio {
         }
 
         suggestions.sort {a, b -> a.value <=> b.value }
-            .each { fund, suggestion ->
-                if (suggestion < 0 ) {
-                    buffer += sellStrategy.doSell(portfolioData[fund], fund, date, suggestion * -1)
+            .each { fund, investement ->
+                if (investement < 0 ) {
+                    buffer += sellStrategy.doSell(portfolioData[fund], fund, date, investement * -1)
                 } else {
                     def sharePrice = (fund as FundData).getSharePriceForDate(date)
-                    Double shares = suggestion / sharePrice
+                    Double shares = investement / sharePrice
 
-                    (portfolioData[fund] as InvestmentsData).put(date as LocalDate, shares, suggestion as Double)
+                    (portfolioData[fund] as InvestmentsData).put(date as LocalDate, shares, investement as Double, sharePrice as Double)
+                    buffer -= investement
                 }
             }
     }

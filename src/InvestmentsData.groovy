@@ -9,8 +9,8 @@ import org.joda.time.LocalDate
 class InvestmentsData {
     Map entries = [:]
 
-    def put(LocalDate date, Double sharesAquired, Double invested) {
-        entries[date] = new Entry(shares: sharesAquired, investment: invested)
+    def put(LocalDate date, Double sharesAquired, Double invested, Double sharePrice) {
+        entries[date] = new Entry(shares: sharesAquired, investment: invested, sharePrice: sharePrice)
     }
 
     Double getTotalInvestedByDate(LocalDate date) {
@@ -35,4 +35,5 @@ class InvestmentsData {
 private class Entry {
     Double shares
     Double investment
+    Double sharePrice
 }
