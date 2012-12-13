@@ -28,7 +28,7 @@ class ValueAveragingInvestmentStrategy implements InvestmentStrategy {
     def invest(FundData fund, LocalDate date, Double amount, Double portfolioTotal, InvestmentsData data) {
         def currentPeriod = period//Months.monthsBetween(startDate, date).getMonths()
         currentTargetValue = amount * currentPeriod * (growthRatePerPeriod ** currentPeriod)
-        if (date.compareTo(lastPeriodDate) > 0) {
+        if (date > lastPeriodDate) {
             period++
             lastPeriodDate = date
         }

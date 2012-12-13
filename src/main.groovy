@@ -61,17 +61,18 @@ def period = fortnightPeriod
 
 funds.each { fund, allocation ->
     fund.load(period)
-    fundSettings[fund] = new FundRebalancingSettings(highLimit: 0.1, lowLimit: 0.05, allocation: allocation)
+    fundSettings[fund] = new FundRebalancingSettings(highLimit: 5, lowLimit: 0.01, allocation: allocation)
 }
 
 OptimisticRebalancingStrategy ors = new OptimisticRebalancingStrategy(fundSettings: fundSettings)
 //NoSellRebalancingStrategy ors = new NoSellRebalancingStrategy(fundSettings: fundSettings)
 
-ValueAveragingInvestmentStrategy invStrat = new ValueAveragingInvestmentStrategy(startDate, 0.1, 26.0, ors)
-//DollarCostAveregingInvestmentStrategy invStrat = new DollarCostAveregingInvestmentStrategy(rebalancingStrategy: ors)
+//ValueAveragingInvestmentStrategy invStrat = new ValueAveragingInvestmentStrategy(startDate, 0.0, 26.0, ors)
+DollarCostAveregingInvestmentStrategy invStrat = new DollarCostAveregingInvestmentStrategy(rebalancingStrategy: ors)
 
 //SellFromTheStartSellStrategy sellStrat = new SellFromTheStartSellStrategy()
 LeastAmountOfProfitSellStrategy sellStrat = new LeastAmountOfProfitSellStrategy()
+//MaxAmountOfProfitSellStrategy sellStrat = new MaxAmountOfProfitSellStrategy()
 
 Portfolio portfolio = new Portfolio(funds.keySet().asList(), invStrat, 300, sellStrat)
 
@@ -99,6 +100,7 @@ println "End value $lastValue"
 println "End value with buffer ${lastValue + portfolio.buffer}"
 println "Total profit at the end ${((lastValue)/lastInvested-1)*100}%"
 println "Total profit at the end with buffer ${((lastValue+portfolio.buffer)/lastInvested-1)*100}%"
+println "End total period investment $portfolio.currentPeriodInvestment"
 
 static XYDataset createVolumeDataset(data) {
     return new TimeSeriesCollection(mapToTimeSeries(data, "Volume"))
@@ -146,13 +148,14 @@ JFreeChart createChart(FundData fund, String strategy)
     return jfreechart;
 }
 
-JFreeChart createSummaryChart(data) {
+JFreeChart createSummaryChart(data, bufferData) {
     TimeSeriesCollection timeSeriesCollection = new TimeSeriesCollection();
 
     //timeSeriesCollection.addSeries(mapToTimeSeries(data[0]["dca"], "Invested-DCA"))
     timeSeriesCollection.addSeries(mapToTimeSeries(data[0]["va"], "Invested-VA"))
     //timeSeriesCollection.addSeries(mapToTimeSeries(data[1]["dca"], "NVA-DCA"))
     timeSeriesCollection.addSeries(mapToTimeSeries(data[1]["va"], "NVA-VA"))
+    timeSeriesCollection.addSeries(mapToTimeSeries(bufferData, "Buffer"))
 
     String s = "Summary";
     JFreeChart jfreechart = ChartFactory.createTimeSeriesChart(s, "Date", "Price", timeSeriesCollection, true, true, false);
@@ -181,7 +184,7 @@ def frame = swing.frame(title:'Groovy PieChart',
                 }*/
 
 //                panel(id:"Allocations") { widget(new ChartPanel(createAllocationChart(funds)))}
-                panel(id:"Summary") { widget(new ChartPanel(createSummaryChart(data)))}
+                panel(id:"Summary") { widget(new ChartPanel(createSummaryChart(data, portfolio.bufferData)))}
             }
         }
     }

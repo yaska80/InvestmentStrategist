@@ -12,15 +12,20 @@ class Portfolio {
     Double investmentAmountPerPeriod
 
     Map portfolioData = [:]
-    def buffer = 0.0
+    def buffer = 4000
     def sellStrategy
-    def pediod
+    def period = 1
+    def growthPerPeriod = 1.03 ** (1/26)
+    def currentPeriodInvestment = 0.0
+    def savedMoneyCumulativeSum = 0.0
+    Map bufferData = [:]
 
     Portfolio(List funds, InvestmentStrategy investmentStrategy, Double investmentAmountPerPeriod, sellStrategy) {
         this.funds = funds
         this.investmentStrategy = investmentStrategy
         this.investmentAmountPerPeriod = investmentAmountPerPeriod
         this.sellStrategy = sellStrategy
+        this.currentPeriodInvestment = investmentAmountPerPeriod
 
         funds.each {
             portfolioData[it] = new InvestmentsData()
@@ -31,7 +36,8 @@ class Portfolio {
         def suggestions = [:]
         def portfolioValue = calculatePortfolioValue(date)
 
-        buffer += investmentAmountPerPeriod
+        currentPeriodInvestment = currentPeriodInvestment * growthPerPeriod
+        buffer += currentPeriodInvestment
 
         funds.each { fund ->
             def investmentSuggestion =
@@ -42,18 +48,36 @@ class Portfolio {
             suggestions[fund] = investmentSuggestion
         }
 
+        def bufferBeforeTransactions = buffer
+        def suggestionsTotal = suggestions.values().sum()
+        //savedMoneyCumulativeSum += suggestionsTotal
+        if (suggestionsTotal < currentPeriodInvestment) {
+            savedMoneyCumulativeSum += (currentPeriodInvestment - suggestionsTotal)
+            println "on $date Whee, we are saving money ${currentPeriodInvestment - suggestionsTotal}, cumulative sum $savedMoneyCumulativeSum"
+        }
+
+
         suggestions.sort {a, b -> a.value <=> b.value }
-            .each { fund, investement ->
-                if (investement < 0 ) {
-                    buffer += sellStrategy.doSell(portfolioData[fund], fund, date, investement * -1)
+            .each { fund, investment ->
+                if (investment < 0 ) {
+                    buffer += sellStrategy.doSell(portfolioData[fund], fund, date, investment * -1)
                 } else {
                     def sharePrice = (fund as FundData).getSharePriceForDate(date)
-                    Double shares = investement / sharePrice
 
-                    (portfolioData[fund] as InvestmentsData).put(date as LocalDate, shares, investement as Double, sharePrice as Double)
-                    buffer -= investement
+                    if (buffer - investment < 0.0) {
+                        println "On $date buffer would have ran out! Buffer = $buffer, investment=$investment to $fund.name buffer before transactions $bufferBeforeTransactions"
+                    }
+                    investment = buffer - investment < 0.0 ? buffer : investment
+                    Double shares = investment / sharePrice
+
+                    (portfolioData[fund] as InvestmentsData).put(date as LocalDate, shares, investment as Double, sharePrice as Double)
+                    buffer -= investment
                 }
             }
+
+        period++
+        bufferData[date] = buffer
+
     }
 
     Double calculatePortfolioValue(LocalDate date) {
