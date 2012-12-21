@@ -14,6 +14,11 @@ class DollarCostAveregingInvestmentStrategy implements InvestmentStrategy
     def target = 0
     def growthRate = 1.03 ** (1/26)
 
+    DollarCostAveregingInvestmentStrategy(rebalancingStrategy, periodsPerYear, growthPerYear) {
+        this.rebalancingStrategy = rebalancingStrategy
+        growthRate = 1 + growthPerYear ** (1/periodsPerYear)
+    }
+
     @Override
     def invest(FundData fund, LocalDate date, Double amount, Double portfolioTotal, InvestmentsData data) {
         if (date > lastPeriodDate) {

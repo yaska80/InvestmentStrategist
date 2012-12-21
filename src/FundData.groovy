@@ -29,7 +29,7 @@ class FundData {
         this.startDate = startDate
     }
 
-    def load(Closure nextPeriod) {
+    def load(Period nextPeriod) {
         def http = new HTTPBuilder(httpAddress)
         data = [:]
 
@@ -59,7 +59,7 @@ class FundData {
         }*/
     }
 
-    private initMonthlyData(def data, Closure nextPeriod) {
+    private initMonthlyData(def data, Period nextPeriod) {
         def firstEntryDate = data.keySet().iterator().next()
 
         def currentTargetDate = startDate.compareTo(firstEntryDate) >= 0 ? startDate : firstEntryDate
@@ -69,7 +69,7 @@ class FundData {
             def comparison = it.key.compareTo(currentTargetDate)
             if (comparison >= 0) {
                 periodicalData[it.key] = it.value
-                currentTargetDate = nextPeriod.call(currentTargetDate)
+                currentTargetDate = nextPeriod.getNextPeriodDate(currentTargetDate)
             }
         }
     }
@@ -115,8 +115,13 @@ class FundData {
     }
 
     Double getSharePriceForDate(date) {
-        def entry = periodicalData.entrySet().find {it.key.compareTo(date) >= 0}
+        def entry = periodicalData.entrySet().find {it.key >= date}
         return entry.value
+    }
+
+    Double getLastSharePrice() {
+        def maxEntry = periodicalData.max { it.key }
+        maxEntry.value
     }
 
     private parseLine(line) {

@@ -15,6 +15,10 @@ import org.jfree.chart.renderer.xy.XYBarRenderer
 import org.jfree.data.time.TimeSeriesCollection
 import org.jfree.data.time.TimeSeries
 import org.jfree.data.time.Day
+import org.jfree.data.general.DefaultPieDataset
+import org.jfree.chart.plot.PiePlot
+import org.jfree.chart.labels.StandardPieSectionLabelGenerator
+import java.text.NumberFormat
 /**
  * 
  * @author jaakkosj / Solita Oy Last changed by: $LastChangedBy$
@@ -49,26 +53,19 @@ funds.put(obligaatio, 0.05)
 
 Map fundSettings = [:]
 
-def fortnightPeriod = {currentDate ->
-    (currentDate as LocalDate).plusWeeks(2)
-}
-def monthlyPeriod = {currentDate ->
-    (currentDate as LocalDate).plusMonths(1)
-}
-
-def period = fortnightPeriod
+Period period = new ForthnightlyPeriod()
 //def period = monthlyPeriod
 
 funds.each { fund, allocation ->
     fund.load(period)
-    fundSettings[fund] = new FundRebalancingSettings(highLimit: 5, lowLimit: 0.01, allocation: allocation)
+    fundSettings[fund] = new FundRebalancingSettings(highLimit: 5, lowLimit: 0.01, allocation: allocation as Double)
 }
 
 OptimisticRebalancingStrategy ors = new OptimisticRebalancingStrategy(fundSettings: fundSettings)
 //NoSellRebalancingStrategy ors = new NoSellRebalancingStrategy(fundSettings: fundSettings)
 
-//ValueAveragingInvestmentStrategy invStrat = new ValueAveragingInvestmentStrategy(startDate, 0.0, 26.0, ors)
-DollarCostAveregingInvestmentStrategy invStrat = new DollarCostAveregingInvestmentStrategy(rebalancingStrategy: ors)
+ValueAveragingInvestmentStrategy invStrat = new ValueAveragingInvestmentStrategy(startDate, 0.03, period.periodsPerYear, ors)
+//DollarCostAveregingInvestmentStrategy invStrat = new DollarCostAveregingInvestmentStrategy(rebalancingStrategy: ors, period.periodsPerYear, 0.03)
 
 //SellFromTheStartSellStrategy sellStrat = new SellFromTheStartSellStrategy()
 LeastAmountOfProfitSellStrategy sellStrat = new LeastAmountOfProfitSellStrategy()
@@ -90,7 +87,7 @@ while (currentDate.compareTo(endDate) < 0) {
     data[0]["va"][currentDate] = lastInvested
     data[1]["va"][currentDate] = lastValue
 
-    currentDate = period.call(currentDate)
+    currentDate = period.getNextPeriodDate(currentDate)
 }
 
 println "Buffer was at the end ${portfolio.buffer}"
@@ -109,9 +106,8 @@ static XYDataset createVolumeDataset(data) {
 private static mapToTimeSeries(map, name) {
     TimeSeries timeseries = new TimeSeries(name, org.jfree.data.time.Day.class);
 
-    map.entrySet().each { it ->
-        def date = it.key
-        timeseries.add(new Day(date.dayOfMonth, date.monthOfYear, date.year), it.value)
+    map.each { date, value ->
+        timeseries.add(new Day(date.dayOfMonth, date.monthOfYear, date.year), value)
     }
 
     return timeseries
@@ -122,7 +118,7 @@ static XYDataset createPriceDataset(data) {
 }
 
 
-JFreeChart createChart(FundData fund, String strategy)
+JFreeChart createChart(FundData fund, String strategy, Map volumeData)
 {
     XYDataset xydataset = createPriceDataset(fund.periodicalData);
     String s = "${fund.name} (${strategy.toUpperCase()})";
@@ -139,7 +135,7 @@ JFreeChart createChart(FundData fund, String strategy)
     NumberAxis numberaxis1 = new NumberAxis("Volume");
     numberaxis1.setUpperMargin(1.0D);
     xyplot.setRangeAxis(1, numberaxis1);
-    xyplot.setDataset(1, createVolumeDataset(fund.investedAmounts[strategy]));
+    xyplot.setDataset(1, createVolumeDataset(volumeData));
     xyplot.setRangeAxis(1, numberaxis1);
     xyplot.mapDatasetToRangeAxis(1, 1);
     XYBarRenderer xybarrenderer = new XYBarRenderer(0.20000000000000001D);
@@ -170,21 +166,58 @@ JFreeChart createSummaryChart(data, bufferData) {
     return jfreechart;
 }
 
+JFreeChart createAllocationChart(Portfolio portfolio) {
+    def dataset = new DefaultPieDataset()
+
+
+    portfolio.portfolioData.each {fund, data ->
+        dataset.setValue(fund.name, data.getTotalValueByDate(new LocalDate(), fund.getLastSharePrice()))
+    }
+
+    JFreeChart chart = ChartFactory.createPieChart(
+            "Allocations",  // chart title
+            dataset,             // data
+            true,               // include legend
+            true,
+            false
+    );
+
+    PiePlot plot = (PiePlot) chart.getPlot();
+    //plot.setLabelFont(new Font("SansSerif", Font.PLAIN, 12));
+    plot.setNoDataMessage("No data available");
+    plot.setCircular(false);
+    plot.setLabelGap(0.02);
+    plot.setLabelGenerator(new StandardPieSectionLabelGenerator(
+            "{0} ({2})", NumberFormat.getNumberInstance(), NumberFormat.getPercentInstance()
+    ));
+
+    return chart;
+}
+
 def swing = new SwingBuilder()
 def frame = swing.frame(title:'Groovy PieChart',
         defaultCloseOperation:WindowConstants.EXIT_ON_CLOSE) {
-    panel() {
+    panel(id:'MainPanel') {
         scrollPane(preferredSize: [1000,700], constraints: context.CENTER) {
             vbox {
-                /*funds.each { fund ->
+                panel(id:"Summary") { widget(new ChartPanel(createSummaryChart(data, portfolio.bufferData)))}
+                panel(id:"Allocation") { widget(new ChartPanel(createAllocationChart(portfolio)))}
+
+                portfolio.funds.eachWithIndex { fund, index ->
                     if (fund != null) {
                         println "Creating panel for ${fund.name}"
-                        panel(id:fund.name) {widget(new ChartPanel(createChart(fund, "va")))}
-                    }
-                }*/
+                        Map fundData = portfolio.portfolioData[fund].entries
+                        def volumeData = fundData.collectEntries { date, value ->
+                            def out = [:]
+                            out.put(date, value.investment)
+                            return out
+                        }
 
-//                panel(id:"Allocations") { widget(new ChartPanel(createAllocationChart(funds)))}
-                panel(id:"Summary") { widget(new ChartPanel(createSummaryChart(data, portfolio.bufferData)))}
+                        panel(id:fund.name + index) {
+                            widget(new ChartPanel(createChart(fund, "va", volumeData)))
+                        }
+                    }
+                }
             }
         }
     }

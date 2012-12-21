@@ -14,15 +14,13 @@ class InvestmentsData {
     }
 
     Double getTotalInvestedByDate(LocalDate date) {
-        entries.findAll { it.key.compareTo(date) <= 0 }.values().sum { it.investment } as Double
+        entries.findAll { it.key <= date }.values()
+                .sum { it.investment } as Double
     }
 
     Double getTotalSharesByDate(LocalDate date) {
-        entries.findAll {
-            it.key.compareTo(date) <= 0
-        }.values().sum {
-            it.shares
-        } as Double
+        entries.findAll { it.key <= date }
+                .values().sum { it.shares } as Double
     }
 
     Double getTotalValueByDate(date, Double sharePrice) {
@@ -36,4 +34,33 @@ private class Entry {
     Double shares
     Double investment
     Double sharePrice
+}
+
+abstract class Period {
+    int periodsPerYear
+
+    abstract LocalDate getNextPeriodDate(LocalDate currentDate);
+}
+
+class MonthlyPeriod extends Period {
+    MonthlyPeriod() {
+        periodsPerYear = 12
+    }
+
+    @Override
+    LocalDate getNextPeriodDate(LocalDate currentDate) {
+        currentDate.plusMonths(1)
+    }
+}
+
+class ForthnightlyPeriod extends Period {
+
+    ForthnightlyPeriod() {
+        periodsPerYear = 52/2
+    }
+
+    @Override
+    LocalDate getNextPeriodDate(LocalDate currentDate) {
+        currentDate.plusWeeks(2)
+    }
 }
