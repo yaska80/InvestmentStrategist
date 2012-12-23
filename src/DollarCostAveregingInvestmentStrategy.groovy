@@ -10,7 +10,7 @@ class DollarCostAveregingInvestmentStrategy implements InvestmentStrategy
 {
     def rebalancingStrategy
     def period = 0
-    def lastPeriodDate = new LocalDate(1900,1,1)
+    def lastRebalancingDate = new LocalDate(1900,1,1)
     def target = 0
     def growthRate = 1.03 ** (1/26)
 
@@ -21,20 +21,19 @@ class DollarCostAveregingInvestmentStrategy implements InvestmentStrategy
 
     @Override
     def invest(FundData fund, LocalDate date, Double amount, Double portfolioTotal, InvestmentsData data) {
-        if (date > lastPeriodDate) {
-            target = amount * (growthRate ** period)
-            lastPeriodDate = date
-            period++
+        def sharePrice = fund.getSharePriceForDate(date)
+
+        if (date > lastRebalancingDate.plusMonths(6)) {
+            def result = rebalancingStrategy.rebalance(fund, data.getTotalValueByDate(date,sharePrice), portfolioTotal)
+            lastRebalancingDate = date
+            return result
+        } else if (lastRebalancingDate == date) {
+            return rebalancingStrategy.rebalance(fund, data.getTotalValueByDate(date,sharePrice), portfolioTotal)
+        } else {
+            def allocation = rebalancingStrategy.fundSettings[fund].allocation
+            def result = amount * allocation
+
+            return result
         }
-        Double sharePrice = fund.getSharePriceForDate(date)
-        def fundCurValue = data.getTotalValueByDate(date, sharePrice)
-
-        //def result = rebalancingStrategy.rebalance(fund, fundCurValue, target)
-        //period += 1
-
-        //def fundTarget = target * rebalancingStrategy.fundSettings[fund].allocation
-        def result = target * rebalancingStrategy.fundSettings[fund].allocation
-
-        return result
     }
 }

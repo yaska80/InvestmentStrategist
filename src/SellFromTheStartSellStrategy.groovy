@@ -15,7 +15,7 @@ abstract class SellStrategySupport {
         def investment = amount
 
         def originalData = investmentData.entries
-        def data = getDataInSellingOrder(originalData, sharePrice)
+        def data = getDataInSellingOrder(originalData, sharePrice, date)
 
         def iter = data.entrySet().iterator()
 
@@ -67,22 +67,23 @@ abstract class SellStrategySupport {
         return amount - taxPaid
     }
 
-    protected abstract Map getDataInSellingOrder(Map map, Double sharePrice);
+    protected abstract Map getDataInSellingOrder(Map map, Double sharePrice, LocalDate date);
 }
 
 class SellFromTheStartSellStrategy extends SellStrategySupport {
 
 
-    protected Map getDataInSellingOrder(Map map, Double aDouble) {
+    protected Map getDataInSellingOrder(Map map, Double aDouble, LocalDate date) {
         [:] + map
     }
 }
 
 class LeastAmountOfProfitSellStrategy extends SellStrategySupport{
     @Override
-    protected Map getDataInSellingOrder(Map data, Double sharePrice) {
+    protected Map getDataInSellingOrder(Map data, Double sharePrice, LocalDate date) {
+
         data.findAll {key, value ->
-            value.sharePrice <= sharePrice
+            value.sharePrice <= sharePrice &&  key < date.minusYears(1)
         }.sort {a, b ->
             (a.value.sharePrice <=> b.value.sharePrice) * -1
         }
@@ -91,7 +92,7 @@ class LeastAmountOfProfitSellStrategy extends SellStrategySupport{
 
 class MaxAmountOfProfitSellStrategy extends SellStrategySupport{
     @Override
-    protected Map getDataInSellingOrder(Map data, Double sharePrice) {
+    protected Map getDataInSellingOrder(Map data, Double sharePrice, LocalDate date) {
         data.findAll {key, value ->
             value.sharePrice <= sharePrice
         }.sort {a, b ->

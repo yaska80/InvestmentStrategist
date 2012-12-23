@@ -53,25 +53,28 @@ funds.put(obligaatio, 0.05)
 
 Map fundSettings = [:]
 
-Period period = new ForthnightlyPeriod()
+//Period period = new ForthnightlyPeriod()
+Period period = new MonthlyPeriod()
 //def period = monthlyPeriod
 
 funds.each { fund, allocation ->
     fund.load(period)
-    fundSettings[fund] = new FundRebalancingSettings(highLimit: 5, lowLimit: 0.01, allocation: allocation as Double)
+    fundSettings[fund] = new FundRebalancingSettings(highLimit: 0.1, lowLimit: 0.05, allocation: allocation as Double)
 }
+fundSettings[russia] = new FundRebalancingSettings(highLimit: 0.3, lowLimit: 0.05, allocation: 0.1)
 
-OptimisticRebalancingStrategy ors = new OptimisticRebalancingStrategy(fundSettings: fundSettings)
+//OptimisticRebalancingStrategy ors = new OptimisticRebalancingStrategy(fundSettings: fundSettings)
 //NoSellRebalancingStrategy ors = new NoSellRebalancingStrategy(fundSettings: fundSettings)
+ToAllocationRebalancingStrategy ors = new ToAllocationRebalancingStrategy(fundSettings: fundSettings)
 
-ValueAveragingInvestmentStrategy invStrat = new ValueAveragingInvestmentStrategy(startDate, 0.03, period.periodsPerYear, ors)
-//DollarCostAveregingInvestmentStrategy invStrat = new DollarCostAveregingInvestmentStrategy(rebalancingStrategy: ors, period.periodsPerYear, 0.03)
+//ValueAveragingInvestmentStrategy invStrat = new ValueAveragingInvestmentStrategy(startDate, 0.02, period.periodsPerYear, ors)
+DollarCostAveregingInvestmentStrategy invStrat = new DollarCostAveregingInvestmentStrategy(ors, period.periodsPerYear, 0.03)
 
 //SellFromTheStartSellStrategy sellStrat = new SellFromTheStartSellStrategy()
 LeastAmountOfProfitSellStrategy sellStrat = new LeastAmountOfProfitSellStrategy()
 //MaxAmountOfProfitSellStrategy sellStrat = new MaxAmountOfProfitSellStrategy()
 
-Portfolio portfolio = new Portfolio(funds.keySet().asList(), invStrat, 300, sellStrat)
+Portfolio portfolio = new Portfolio(funds.keySet().asList(), invStrat, 600, sellStrat, period.periodsPerYear)
 
 LocalDate currentDate = startDate
 def endDate = new LocalDate()
@@ -139,6 +142,7 @@ JFreeChart createChart(FundData fund, String strategy, Map volumeData)
     xyplot.setRangeAxis(1, numberaxis1);
     xyplot.mapDatasetToRangeAxis(1, 1);
     XYBarRenderer xybarrenderer = new XYBarRenderer(0.20000000000000001D);
+    xybarrenderer.shadowVisible = false
     xybarrenderer.setBaseToolTipGenerator(new StandardXYToolTipGenerator("{0}: ({1}, {2})", new SimpleDateFormat("d-MMM-yyyy"), new DecimalFormat("0,000.00")));
     xyplot.setRenderer(1, xybarrenderer);
     return jfreechart;
@@ -205,7 +209,7 @@ def frame = swing.frame(title:'Groovy PieChart',
 
                 portfolio.funds.eachWithIndex { fund, index ->
                     if (fund != null) {
-                        println "Creating panel for ${fund.name}"
+                        //println "Creating panel for ${fund.name}"
                         Map fundData = portfolio.portfolioData[fund].entries
                         def volumeData = fundData.collectEntries { date, value ->
                             def out = [:]

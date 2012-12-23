@@ -1,5 +1,5 @@
 import org.joda.time.LocalDate
-import org.joda.time.Months
+
 /**
  * Created with IntelliJ IDEA.
  * User: jaakkosjoholm
@@ -26,10 +26,9 @@ class ValueAveragingInvestmentStrategy implements InvestmentStrategy {
 
     @Override
     def invest(FundData fund, LocalDate date, Double amount, Double portfolioTotal, InvestmentsData data) {
-        def currentPeriod = period//Months.monthsBetween(startDate, date).getMonths()
-        currentTargetValue = amount * currentPeriod * (growthRatePerPeriod ** currentPeriod)
         if (date > lastPeriodDate) {
             period++
+            currentTargetValue = amount * period * (growthRatePerPeriod ** period)
             lastPeriodDate = date
         }
         //period++

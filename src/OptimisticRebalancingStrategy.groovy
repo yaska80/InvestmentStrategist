@@ -1,4 +1,4 @@
-
+import org.joda.time.LocalDate
 /**
  * Created with IntelliJ IDEA.
  * User: jaakkosjoholm
@@ -47,6 +47,18 @@ class NoSellRebalancingStrategy {
         Double investment = fundTargetValue - fundCurrentValue
 
         return investment < 0.0 ? 0.0 : investment
+    }
+}
+
+class RebalanceYearlyStrategy {
+    Map fundSettings
+
+    Double rebalance(FundData fund, Double fundCurrentValue, Double portfolioTargetValue) {
+        FundRebalancingSettings settings = fundSettings[fund] as FundRebalancingSettings
+        Double fundTargetValue = portfolioTargetValue * settings.allocation
+        Double investment = fundTargetValue - fundCurrentValue
+
+        return investment
     }
 }
 

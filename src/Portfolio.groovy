@@ -15,17 +15,18 @@ class Portfolio {
     def buffer = 4000
     def sellStrategy
     def period = 1
-    def growthPerPeriod = 1.03 ** (1/26)
+    def growthPerPeriod = 1.03 ** (1/12)
     def currentPeriodInvestment = 0.0
     def savedMoneyCumulativeSum = 0.0
     Map bufferData = [:]
 
-    Portfolio(List funds, InvestmentStrategy investmentStrategy, Double investmentAmountPerPeriod, sellStrategy) {
+    Portfolio(List funds, InvestmentStrategy investmentStrategy, Double investmentAmountPerPeriod, sellStrategy, periodsPerYear) {
         this.funds = funds
         this.investmentStrategy = investmentStrategy
         this.investmentAmountPerPeriod = investmentAmountPerPeriod
         this.sellStrategy = sellStrategy
         this.currentPeriodInvestment = investmentAmountPerPeriod
+        this.growthPerPeriod = 1.03 ** (1/periodsPerYear)
 
         funds.each {
             portfolioData[it] = new InvestmentsData()
@@ -42,7 +43,7 @@ class Portfolio {
         funds.each { fund ->
             def investmentSuggestion =
                 investmentStrategy.invest(fund as FundData, date,
-                        investmentAmountPerPeriod, portfolioValue,
+                        currentPeriodInvestment, portfolioValue,
                         portfolioData[fund] as InvestmentsData)
 
             suggestions[fund] = investmentSuggestion
@@ -51,9 +52,10 @@ class Portfolio {
         def bufferBeforeTransactions = buffer
         def suggestionsTotal = suggestions.values().sum()
         //savedMoneyCumulativeSum += suggestionsTotal
-        if (suggestionsTotal < currentPeriodInvestment) {
-            savedMoneyCumulativeSum += (currentPeriodInvestment - suggestionsTotal)
-            println "on $date Whee, we are saving money ${currentPeriodInvestment - suggestionsTotal}, cumulative sum $savedMoneyCumulativeSum"
+        def savedMoneyThisPeriod = currentPeriodInvestment - suggestionsTotal
+        if (savedMoneyThisPeriod > 0.005) {
+            savedMoneyCumulativeSum += savedMoneyThisPeriod
+            println "on $date Whee, we are saving money ${savedMoneyThisPeriod}, cumulative sum $savedMoneyCumulativeSum"
         }
 
 
