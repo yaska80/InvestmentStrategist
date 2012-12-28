@@ -64,11 +64,11 @@ funds.each { fund, allocation ->
 fundSettings[russia] = new FundRebalancingSettings(highLimit: 0.3, lowLimit: 0.05, allocation: 0.1)
 
 //OptimisticRebalancingStrategy ors = new OptimisticRebalancingStrategy(fundSettings: fundSettings)
-//NoSellRebalancingStrategy ors = new NoSellRebalancingStrategy(fundSettings: fundSettings)
-ToAllocationRebalancingStrategy ors = new ToAllocationRebalancingStrategy(fundSettings: fundSettings)
+NoSellRebalancingStrategy ors = new NoSellRebalancingStrategy(fundSettings: fundSettings)
+//ToAllocationRebalancingStrategy ors = new ToAllocationRebalancingStrategy(fundSettings: fundSettings)
 
-//ValueAveragingInvestmentStrategy invStrat = new ValueAveragingInvestmentStrategy(startDate, 0.02, period.periodsPerYear, ors)
-DollarCostAveregingInvestmentStrategy invStrat = new DollarCostAveregingInvestmentStrategy(ors, period.periodsPerYear, 0.03)
+ValueAveragingInvestmentStrategy invStrat = new ValueAveragingInvestmentStrategy(startDate, 0.03, period.periodsPerYear, ors)
+//DollarCostAveregingInvestmentStrategy invStrat = new DollarCostAveregingInvestmentStrategy(ors, period.periodsPerYear, 0.03)
 
 //SellFromTheStartSellStrategy sellStrat = new SellFromTheStartSellStrategy()
 LeastAmountOfProfitSellStrategy sellStrat = new LeastAmountOfProfitSellStrategy()

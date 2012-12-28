@@ -34,7 +34,9 @@ class ToAllocationRebalancingStrategy {
         FundRebalancingSettings settings = fundSettings[fund] as FundRebalancingSettings
 
         Double fundTargetValue = portfolioTargetValue * settings.allocation
-        return fundTargetValue - fundCurrentValue
+        def result = fundTargetValue - fundCurrentValue
+        //return result < -100 ? 0.0 : result
+        return result
     }
 }
 

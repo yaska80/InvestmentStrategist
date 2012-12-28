@@ -23,7 +23,7 @@ class DollarCostAveregingInvestmentStrategy implements InvestmentStrategy
     def invest(FundData fund, LocalDate date, Double amount, Double portfolioTotal, InvestmentsData data) {
         def sharePrice = fund.getSharePriceForDate(date)
 
-        if (date > lastRebalancingDate.plusMonths(6)) {
+        if (date > lastRebalancingDate.plusMonths(4)) {
             def result = rebalancingStrategy.rebalance(fund, data.getTotalValueByDate(date,sharePrice), portfolioTotal)
             lastRebalancingDate = date
             return result

@@ -12,7 +12,7 @@ class ValueAveragingInvestmentStrategy implements InvestmentStrategy {
     def growthRatePerPeriod = 0.0D
     def startDate = new LocalDate()
     def rebalancingStrategy
-    def currentTargetValue
+    def currentTargetValue = 0.0D
     def period = 0
     def lastPeriodDate
 
