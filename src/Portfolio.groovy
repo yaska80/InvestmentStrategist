@@ -55,7 +55,7 @@ class Portfolio {
         def savedMoneyThisPeriod = currentPeriodInvestment - suggestionsTotal
         if (savedMoneyThisPeriod > 0.005) {
             savedMoneyCumulativeSum += savedMoneyThisPeriod
-            println "on $date Whee, we are saving money ${savedMoneyThisPeriod}, cumulative sum $savedMoneyCumulativeSum"
+//            println "on $date Whee, we are saving money ${savedMoneyThisPeriod}, cumulative sum $savedMoneyCumulativeSum"
         }
 
 
@@ -67,7 +67,7 @@ class Portfolio {
                     def sharePrice = (fund as FundData).getSharePriceForDate(date)
 
                     if (buffer - investment < 0.0) {
-                        println "On $date buffer would have ran out! Buffer = $buffer, investment=$investment to $fund.name buffer before transactions $bufferBeforeTransactions"
+//                        println "On $date buffer would have ran out! Buffer = $buffer, investment=$investment to $fund.name buffer before transactions $bufferBeforeTransactions"
                     }
                     investment = buffer - investment < 0.0 ? buffer : investment
                     Double shares = investment / sharePrice

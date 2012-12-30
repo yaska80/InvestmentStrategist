@@ -47,7 +47,7 @@ abstract class SellStrategySupport {
                 totalNet += net
 
 
-                println "on ${date} sold from fund ${fund.name} amount ${net} (profit: ${totalProfit}) tax ${taxPaid}, total net ${totalNet} and tax ${totalTaxPaid}"
+//                println "on ${date} sold from fund ${fund.name} amount ${net} (profit: ${totalProfit}) tax ${taxPaid}, total net ${totalNet} and tax ${totalTaxPaid}"
 
                 return net
             } else {
