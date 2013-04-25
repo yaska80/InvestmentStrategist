@@ -1,3 +1,4 @@
+import org.joda.time.Duration
 import org.joda.time.LocalDate
 import groovy.swing.SwingBuilder
 import javax.swing.WindowConstants
@@ -19,113 +20,165 @@ import org.jfree.data.general.DefaultPieDataset
 import org.jfree.chart.plot.PiePlot
 import org.jfree.chart.labels.StandardPieSectionLabelGenerator
 import java.text.NumberFormat
+import java.util.concurrent.Callable
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+
 /**
  * 
  * @author jaakkosj / Solita Oy Last changed by: $LastChangedBy$
  */
 
 
-def startDate = new LocalDate(2002,1,7)
+//def startDate = new LocalDate(2002,1,7)
+def startDate = new LocalDate(1990,1,7)
+//def startDate = new LocalDate(1980,1,7)
+
+def executionRuns = 100
 
 List vaResults = []
 List dcaResults = []
 
-for (def i = 0; i < 200; i++) {
-    SimulatedFundData russia
-    java.util.Map funds
-    (funds, russia) = setupFunds(startDate)
+long loopStartTS = System.currentTimeMillis()
 
-    Map fundSettings = [:]
+//ExecutorService randomGeneratorPool = Executors.newFixedThreadPool(2);
+ExecutorService mainPool = Executors.newFixedThreadPool(6);
 
-    Period period = new ForthnightlyPeriod()
-    def periodicalInvestment = 300
-//    Period period = new MonthlyPeriod()
-//    def periodicalInvestment = 600
+CountDownLatch mainLatch = new CountDownLatch(executionRuns)
 
-    Map fundMeans = [:]
-    Map fundStdDevs = [:]
-
-    funds.each { fund, allocation ->
-        fund.load(period)
-
-        //if (!fund instanceof SimulatedFundData){
-        fundMeans[fund] = fund.mean
-        fundStdDevs[fund] = fund.standardDeviation
-
-//            println "Fund ${fund.name},  myMean=${fundMeans[fund]}, stddev=${fundStdDevs[fund]}"
-        //}
-
-        fundSettings[fund] = new FundRebalancingSettings(highLimit: 0.2, lowLimit: 0.05, allocation: allocation as Double)
-    }
-    fundSettings[russia] = new FundRebalancingSettings(highLimit: 0.3, lowLimit: 0.05, allocation: 0.1)
-
-    OptimisticRebalancingStrategy ors = new OptimisticRebalancingStrategy(fundSettings: fundSettings)
-    //NoSellRebalancingStrategy ors = new NoSellRebalancingStrategy(fundSettings: fundSettings)
-    ToAllocationRebalancingStrategy orsTa = new ToAllocationRebalancingStrategy(fundSettings: fundSettings)
-
-    ValueAveragingInvestmentStrategy invStrat = new ValueAveragingInvestmentStrategy(startDate, 0.08, period.periodsPerYear, ors)
-    DollarCostAveregingInvestmentStrategy dcaStrat = new DollarCostAveregingInvestmentStrategy(orsTa, period.periodsPerYear, 0.03)
-
-    //SellFromTheStartSellStrategy sellStrat = new SellFromTheStartSellStrategy()
-    LeastAmountOfProfitSellStrategy sellStratVa = new LeastAmountOfProfitSellStrategy()
-    LeastAmountOfProfitSellStrategy sellStratDca = new LeastAmountOfProfitSellStrategy()
-    //MaxAmountOfProfitSellStrategy sellStrat = new MaxAmountOfProfitSellStrategy()
+for (def i = 0; i < executionRuns; i++) {
+    mainPool.submit(new Runnable() {
+        @Override
+        void run() {
 
 
-    Portfolio portfolioVa = new Portfolio(funds.keySet().asList(), invStrat, periodicalInvestment, sellStratVa, period.periodsPerYear)
-    Portfolio portfolioDca = new Portfolio(funds.keySet().asList(), dcaStrat, periodicalInvestment, sellStratDca, period.periodsPerYear)
 
-    LocalDate currentDate = startDate
-    def endDate = new LocalDate()
-    def data = [["va":[:],"dca":[:]],["va":[:],"dca":[:]]]
-    def lastInvestedVa = 0.0
-    def lastInvestedDca = 0.0
-    def lastValueVa = 0.0
-    def lastValueDca = 0.0
+            SimulatedFundData russia
+        java.util.Map funds
+        (funds, russia) = setupFunds(startDate)
 
-    while (currentDate.compareTo(endDate) < 0) {
-        portfolioVa.doInvestmentRound(currentDate)
-        portfolioDca.doInvestmentRound(currentDate)
+        Map fundSettings = [:]
 
-        lastInvestedVa = portfolioVa.calculatePortfolioInvested(currentDate)
-        lastInvestedDca = portfolioDca.calculatePortfolioInvested(currentDate)
-        lastValueVa = portfolioVa.calculatePortfolioValue(currentDate)
-        lastValueDca = portfolioDca.calculatePortfolioValue(currentDate)
-        data[0]["va"][currentDate] = lastInvestedVa
-        data[0]["dca"][currentDate] = lastInvestedDca
-        data[1]["va"][currentDate] = lastValueVa
-        data[1]["dca"][currentDate] = lastValueDca
+        Period period = new ForthnightlyPeriod()
+        def periodicalInvestment = 300
+    //    Period period = new MonthlyPeriod()
+    //    def periodicalInvestment = 600
 
-        currentDate = period.getNextPeriodDate(currentDate)
-    }
+        Map fundMeans = [:]
+        Map fundStdDevs = [:]
 
-    def profit = ((lastValueVa) / lastInvestedVa - 1) * 100
-    def profitWithBuffer = ((lastValueVa + portfolioVa.buffer) / lastInvestedVa - 1) * 100
-    vaResults << [profit, profitWithBuffer]
-//    println "\n[VA] Buffer was at the end ${portfolioVa.buffer}"
-//    println "[VA] Total Tax Paid ${sellStratVa.totalTaxPaid}"
-//    println "[VA] End invested $lastInvestedVa"
-//    println "[VA] End value $lastValueVa"
-//    println "[VA] End value with buffer ${lastValueVa + portfolioVa.buffer}"
-//    println "[VA] Total profit at the end ${profit}%"
-//    println "[VA] Total profit at the end with buffer ${profitWithBuffer}%"
-//    println "[VA] End total period investment $portfolioVa.currentPeriodInvestment"
+        //CountDownLatch latch = new CountDownLatch(funds.size())
+        long startTS = System.currentTimeMillis();
+
+        funds.each { fund, allocation ->
+            //randomGeneratorPool.submit(new Callable<Void>() {
+            //    @Override
+            //    Void call() throws Exception {
+                    fund.load(period)
+            //        latch.countDown()
+            //        return null
+            //    }
+            //})
+
+            //if (!fund instanceof SimulatedFundData){
+            //fundMeans[fund] = fund.mean
+            //fundStdDevs[fund] = fund.standardDeviation
+
+    //            println "Fund ${fund.name},  myMean=${fundMeans[fund]}, stddev=${fundStdDevs[fund]}"
+            //}
+
+            fundSettings[fund] = new FundRebalancingSettings(highLimit: 0.2, lowLimit: 0.05, allocation: allocation as Double)
+        }
+        //latch.await()
+        //println "Generating data for loop ${i} lasted ${System.currentTimeMillis() - startTS}"
+        fundSettings[russia] = new FundRebalancingSettings(highLimit: 0.3, lowLimit: 0.05, allocation: 0.1)
+
+        //OptimisticRebalancingStrategy ors = new OptimisticRebalancingStrategy(fundSettings: fundSettings)
+        NoSellRebalancingStrategy ors = new NoSellRebalancingStrategy(fundSettings: fundSettings)
+        ToAllocationRebalancingStrategy orsTa = new ToAllocationRebalancingStrategy(fundSettings: fundSettings)
+
+        ValueAveragingInvestmentStrategy invStrat = new ValueAveragingInvestmentStrategy(startDate, 0.10, period.periodsPerYear, ors)
+        DollarCostAveregingInvestmentStrategy dcaStrat = new DollarCostAveregingInvestmentStrategy(orsTa, period.periodsPerYear, 0.03)
+
+        //SellFromTheStartSellStrategy sellStrat = new SellFromTheStartSellStrategy()
+        LeastAmountOfProfitSellStrategy sellStratVa = new LeastAmountOfProfitSellStrategy()
+        LeastAmountOfProfitSellStrategy sellStratDca = new LeastAmountOfProfitSellStrategy()
+        //MaxAmountOfProfitSellStrategy sellStrat = new MaxAmountOfProfitSellStrategy()
 
 
-    profit = ((lastValueDca) / lastInvestedDca - 1) * 100
-    profitWithBuffer = ((lastValueDca + portfolioDca.buffer) / lastInvestedDca - 1) * 100
-    dcaResults << [profit, profitWithBuffer]
-//    println "\n[DCA] Buffer was at the end ${portfolioDca.buffer}"
-//    println "[DCA] Total Tax Paid ${sellStratDca.totalTaxPaid}"
-//    println "[DCA] End invested $lastInvestedDca"
-//    println "[DCA] End value $lastValueDca"
-//    println "[DCA] End value with buffer ${lastValueDca + portfolioDca.buffer}"
-//    println "[DCA] Total profit at the end ${profit}%"
-//    println "[DCA] Total profit at the end with buffer ${profitWithBuffer}%"
-//    println "[DCA] End total period investment $portfolioDca.currentPeriodInvestment"
+        Portfolio portfolioVa = new Portfolio(funds.keySet().asList(), invStrat, periodicalInvestment, sellStratVa, period.periodsPerYear)
+        Portfolio portfolioDca = new Portfolio(funds.keySet().asList(), dcaStrat, periodicalInvestment, sellStratDca, period.periodsPerYear)
 
-    print(".")
+        LocalDate currentDate = startDate
+        def endDate = new LocalDate()
+        def data = [["va":[:],"dca":[:]],["va":[:],"dca":[:]]]
+        def lastInvestedVa = 0.0
+        def lastInvestedDca = 0.0
+        def lastValueVa = 0.0
+        def lastValueDca = 0.0
+
+        long initStopTS = System.currentTimeMillis()
+        //println "Init lasted ${initStopTS - loopStartTS}"
+
+        while (currentDate.compareTo(endDate) < 0) {
+            portfolioVa.doInvestmentRound(currentDate)
+            portfolioDca.doInvestmentRound(currentDate)
+
+            lastInvestedVa = portfolioVa.calculatePortfolioInvested(currentDate)
+            lastInvestedDca = portfolioDca.calculatePortfolioInvested(currentDate)
+            lastValueVa = portfolioVa.calculatePortfolioValue(currentDate)
+            lastValueDca = portfolioDca.calculatePortfolioValue(currentDate)
+
+            data[0]["va"][currentDate] = lastInvestedVa
+            data[0]["dca"][currentDate] = lastInvestedDca
+            data[1]["va"][currentDate] = lastValueVa
+            data[1]["dca"][currentDate] = lastValueDca
+
+            currentDate = period.getNextPeriodDate(currentDate)
+        }
+
+        long investmentStopTs = System.currentTimeMillis()
+        //println "Investment lasted ${investmentStopTs - initStopTS}"
+
+        def profit = ((lastValueVa) / lastInvestedVa - 1) * 100
+        def profitWithBuffer = ((lastValueVa + portfolioVa.buffer) / lastInvestedVa - 1) * 100
+        vaResults << [profit, profitWithBuffer]
+    //    println "\n[VA] Buffer was at the end ${portfolioVa.buffer}"
+    //    println "[VA] Total Tax Paid ${sellStratVa.totalTaxPaid}"
+    //    println "[VA] End invested $lastInvestedVa"
+    //    println "[VA] End value $lastValueVa"
+    //    println "[VA] End value with buffer ${lastValueVa + portfolioVa.buffer}"
+    //    println "[VA] Total profit at the end ${profit}%"
+    //    println "[VA] Total profit at the end with buffer ${profitWithBuffer}%"
+    //    println "[VA] End total period investment $portfolioVa.currentPeriodInvestment"
+
+
+        profit = ((lastValueDca) / lastInvestedDca - 1) * 100
+        profitWithBuffer = ((lastValueDca + portfolioDca.buffer) / lastInvestedDca - 1) * 100
+        dcaResults << [profit, profitWithBuffer]
+    //    println "\n[DCA] Buffer was at the end ${portfolioDca.buffer}"
+    //    println "[DCA] Total Tax Paid ${sellStratDca.totalTaxPaid}"
+    //    println "[DCA] End invested $lastInvestedDca"
+    //    println "[DCA] End value $lastValueDca"
+    //    println "[DCA] End value with buffer ${lastValueDca + portfolioDca.buffer}"
+    //    println "[DCA] Total profit at the end ${profit}%"
+    //    println "[DCA] Total profit at the end with buffer ${profitWithBuffer}%"
+    //    println "[DCA] End total period investment $portfolioDca.currentPeriodInvestment"
+
+        //println "Loop total lasted ${System.currentTimeMillis() - loopStartTS}"
+        print(".")
+            mainLatch.countDown()
+            //println "Latch at: " + mainLatch.getCount()
+        }
+    })
+
 }
+
+mainLatch.await()
+
+def period = new org.joda.time.Period(System.currentTimeMillis() - loopStartTS)
+println "Executed in ${period}"
 
 println "\n\nVA profit\t| DCA profit\t| -DIFF-\t\t| VA buffer\t| DCA buffer\t| -DIFF-"
 println "-_" * 40
@@ -149,6 +202,7 @@ profitsWithBuffer = dcaResults.collect {it[1]}
 
 println("DCA profit mean: ${profits.sum()/profits.size()}%")
 println("DCA profit with buffer mean: ${profitsWithBuffer.sum()/profitsWithBuffer.size()}%")
+System.exit(0)
 
 private List setupFunds(LocalDate startDate) {
 //FundData europe = new SeligsonFundData("http://www.seligson.fi/graafit/data.asp?op=eurooppa", "Seligson Eurooppa", startDate)

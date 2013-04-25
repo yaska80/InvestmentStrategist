@@ -130,6 +130,7 @@ abstract class FundData {
 
 class SimulatedFundData extends FundData{
     private Double myMean, stdDev
+    private random = new Random()
     //private static final random = new Random()
 
     SimulatedFundData(name, startDate, Double mean, Double stdDev) {
@@ -142,7 +143,7 @@ class SimulatedFundData extends FundData{
         def currentTargetDate = startDate
         def endDate = new LocalDate()
         def prevValue = 1.0D
-        def random = new Random()
+        //def random = new Random()
 
         while (currentTargetDate <= endDate) {
             def priceChange = (random.nextGaussian() * stdDev + myMean) + 1

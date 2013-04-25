@@ -9,7 +9,7 @@
 import javax.swing.WindowConstants as WC
 
 import groovy.swing.SwingBuilder
-@groovy.lang.Grab(group = 'jfree', module = 'jfreechart', version = '1.0.13') import org.jfree.chart.ChartFactory
+@groovy.lang.Grab(group = 'jfree', module = 'jfreechart', version = '1.0.12') import org.jfree.chart.ChartFactory
 import org.jfree.chart.ChartPanel
 import org.jfree.chart.JFreeChart
 import org.jfree.chart.axis.NumberAxis
@@ -115,26 +115,26 @@ def monthlyPeriod = {currentDate ->
 
 def period = monthlyPeriod
 
-def europe = new FundData("http://www.seligson.fi/graafit/data.asp?op=eurooppa", "Seligson Eurooppa", startDate)
-europe.load(period)
-def corporate = new FundData("http://www.seligson.fi/graafit/data.asp?op=eurocorporate", "Seligson Corporate Bond", startDate)
-corporate.load(period)
-def obligaatio = new FundData("http://www.seligson.fi/graafit/data.asp?op=euroobligaatio", "Seligson Obligaatio", startDate)
-obligaatio.load(period)
-def pharma = new FundData("http://www.seligson.fi/graafit/data.asp?op=global-pharma", "Seligson Pharma", startDate)
-pharma.load(period)
-def russia = new FundData("http://www.seligson.fi/graafit/data.asp?op=russia", "Seligson Russia", startDate)
-russia.load(period)
-def brands = new FundData("http://www.seligson.fi/graafit/data.asp?op=global-brands", "Seligson Brands", startDate)
-brands.load(period)
-def aasia = new FundData("http://www.seligson.fi/graafit/data.asp?op=aasia", "Seligson Aasia", startDate)
-aasia.load(period)
-def phoebus = new FundData("http://www.seligson.fi/graafit/data.asp?op=phoebus", "Seligson Phoebus", startDate)
-phoebus.load(period)
-def kehittyva = new FundData("http://www.seligson.fi/graafit/data.asp?op=kehittyva", "Seligson Kehittyvät", startDate)
-kehittyva.load(period)
-def amerikka = new FundData("http://www.seligson.fi/graafit/data.asp?op=pohjoisamerikka", "Seligson Pohjois-amerikka", startDate)
-amerikka.load(period)
+//def europe = new FundData("http://www.seligson.fi/graafit/data.asp?op=eurooppa", "Seligson Eurooppa", startDate)
+//europe.load(period)
+//def corporate = new FundData("http://www.seligson.fi/graafit/data.asp?op=eurocorporate", "Seligson Corporate Bond", startDate)
+//corporate.load(period)
+//def obligaatio = new FundData("http://www.seligson.fi/graafit/data.asp?op=euroobligaatio", "Seligson Obligaatio", startDate)
+//obligaatio.load(period)
+//def pharma = new FundData("http://www.seligson.fi/graafit/data.asp?op=global-pharma", "Seligson Pharma", startDate)
+//pharma.load(period)
+//def russia = new FundData("http://www.seligson.fi/graafit/data.asp?op=russia", "Seligson Russia", startDate)
+//russia.load(period)
+//def brands = new FundData("http://www.seligson.fi/graafit/data.asp?op=global-brands", "Seligson Brands", startDate)
+//brands.load(period)
+//def aasia = new FundData("http://www.seligson.fi/graafit/data.asp?op=aasia", "Seligson Aasia", startDate)
+//aasia.load(period)
+//def phoebus = new FundData("http://www.seligson.fi/graafit/data.asp?op=phoebus", "Seligson Phoebus", startDate)
+//phoebus.load(period)
+//def kehittyva = new FundData("http://www.seligson.fi/graafit/data.asp?op=kehittyva", "Seligson Kehittyvät", startDate)
+//kehittyva.load(period)
+//def amerikka = new FundData("http://www.seligson.fi/graafit/data.asp?op=pohjoisamerikka", "Seligson Pohjois-amerikka", startDate)
+//amerikka.load(period)
 
 // eurooppa 15.06.1998
 //eurocorporate 14.09.2001
