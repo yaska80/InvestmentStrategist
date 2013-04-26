@@ -35,7 +35,7 @@ import java.util.concurrent.Executors
 def startDate = new LocalDate(1990,1,7)
 //def startDate = new LocalDate(1980,1,7)
 
-def executionRuns = 100
+def executionRuns = 50
 
 List vaResults = []
 List dcaResults = []
@@ -88,14 +88,14 @@ for (def i = 0; i < executionRuns; i++) {
     //            println "Fund ${fund.name},  myMean=${fundMeans[fund]}, stddev=${fundStdDevs[fund]}"
             //}
 
-            fundSettings[fund] = new FundRebalancingSettings(highLimit: 0.2, lowLimit: 0.05, allocation: allocation as Double)
+            fundSettings[fund] = new FundRebalancingSettings(highLimit: 1000.0, lowLimit: 0.05, allocation: allocation as Double)
         }
         //latch.await()
         //println "Generating data for loop ${i} lasted ${System.currentTimeMillis() - startTS}"
-        fundSettings[russia] = new FundRebalancingSettings(highLimit: 0.3, lowLimit: 0.05, allocation: 0.1)
+        fundSettings[russia] = new FundRebalancingSettings(highLimit: 1000.0, lowLimit: 0.05, allocation: 0.1)
 
-        //OptimisticRebalancingStrategy ors = new OptimisticRebalancingStrategy(fundSettings: fundSettings)
-        NoSellRebalancingStrategy ors = new NoSellRebalancingStrategy(fundSettings: fundSettings)
+        OptimisticRebalancingStrategy ors = new OptimisticRebalancingStrategy(fundSettings: fundSettings)
+//        NoSellRebalancingStrategy ors = new NoSellRebalancingStrategy(fundSettings: fundSettings)
         ToAllocationRebalancingStrategy orsTa = new ToAllocationRebalancingStrategy(fundSettings: fundSettings)
 
         ValueAveragingInvestmentStrategy invStrat = new ValueAveragingInvestmentStrategy(startDate, 0.10, period.periodsPerYear, ors)
@@ -143,7 +143,7 @@ for (def i = 0; i < executionRuns; i++) {
 
         def profit = ((lastValueVa) / lastInvestedVa - 1) * 100
         def profitWithBuffer = ((lastValueVa + portfolioVa.buffer) / lastInvestedVa - 1) * 100
-        vaResults << [profit, profitWithBuffer]
+        vaResults << [profit, profitWithBuffer, portfolioVa.TWRIndex]
     //    println "\n[VA] Buffer was at the end ${portfolioVa.buffer}"
     //    println "[VA] Total Tax Paid ${sellStratVa.totalTaxPaid}"
     //    println "[VA] End invested $lastInvestedVa"
@@ -156,7 +156,7 @@ for (def i = 0; i < executionRuns; i++) {
 
         profit = ((lastValueDca) / lastInvestedDca - 1) * 100
         profitWithBuffer = ((lastValueDca + portfolioDca.buffer) / lastInvestedDca - 1) * 100
-        dcaResults << [profit, profitWithBuffer]
+        dcaResults << [profit, profitWithBuffer, portfolioDca.TWRIndex]
     //    println "\n[DCA] Buffer was at the end ${portfolioDca.buffer}"
     //    println "[DCA] Total Tax Paid ${sellStratDca.totalTaxPaid}"
     //    println "[DCA] End invested $lastInvestedDca"
@@ -193,15 +193,19 @@ def toP(Double value) {
 
 def profits = vaResults.collect {it[0]}
 def profitsWithBuffer = vaResults.collect {it[1]}
+def twrIndex = vaResults.collect {it[2]}
 
 println("\nVA profit mean: ${toP(profits.sum()/profits.size())}%")
 println("VA profit with buffer mean: ${toP(profitsWithBuffer.sum()/profitsWithBuffer.size())}%")
+println("VA TWR Index: ${toP(twrIndex.sum()/twrIndex.size())}")
 
 profits = dcaResults.collect {it[0]}
 profitsWithBuffer = dcaResults.collect {it[1]}
+twrIndex = dcaResults.collect {it[2]}
 
 println("DCA profit mean: ${profits.sum()/profits.size()}%")
 println("DCA profit with buffer mean: ${profitsWithBuffer.sum()/profitsWithBuffer.size()}%")
+println("DCA TWR Index: ${toP(twrIndex.sum()/twrIndex.size())}")
 System.exit(0)
 
 private List setupFunds(LocalDate startDate) {

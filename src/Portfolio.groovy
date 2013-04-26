@@ -20,6 +20,9 @@ class Portfolio {
     def savedMoneyCumulativeSum = 0.0
     Map bufferData = [:]
 
+    Double TWRIndex = 100.0
+    Double previousPortfolioValue = 0.0
+
     Portfolio(List funds, InvestmentStrategy investmentStrategy, Double investmentAmountPerPeriod, sellStrategy, periodsPerYear) {
         this.funds = funds
         this.investmentStrategy = investmentStrategy
@@ -58,11 +61,13 @@ class Portfolio {
 //            println "on $date Whee, we are saving money ${savedMoneyThisPeriod}, cumulative sum $savedMoneyCumulativeSum"
         }
 
+        def realPeriodInvestmentsTotal = []
 
         suggestions.sort {a, b -> a.value <=> b.value }
             .each { fund, investment ->
                 if (investment < 0 ) {
                     buffer += sellStrategy.doSell(portfolioData[fund], fund, date, investment * -1)
+                    realPeriodInvestmentsTotal << (investment * -1)
                 } else {
                     def sharePrice = (fund as FundData).getSharePriceForDate(date)
 
@@ -74,8 +79,18 @@ class Portfolio {
 
                     (portfolioData[fund] as InvestmentsData).put(date as LocalDate, shares, investment as Double, sharePrice as Double)
                     buffer -= investment
+                    realPeriodInvestmentsTotal << investment
                 }
             }
+
+        portfolioValue = calculatePortfolioValue(date)
+        //edellisen päivän indeksiluku*(1+(salkun arvo - edellisen päivän arvo - rahavirta)/edellisen päivän salkun arvolla)
+        def realPeriodInvestmentsTotalSum = realPeriodInvestmentsTotal.sum()
+        def curPortfolioValue = portfolioValue - previousPortfolioValue - realPeriodInvestmentsTotalSum
+        if (previousPortfolioValue > 0.0) {
+            TWRIndex = TWRIndex * (1.0 + curPortfolioValue / previousPortfolioValue)
+        }
+        previousPortfolioValue = portfolioValue
 
         period++
         bufferData[date] = buffer
@@ -93,4 +108,5 @@ class Portfolio {
             data.getTotalInvestedByDate(date)
         }.sum() as Double
     }
+
 }
