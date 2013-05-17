@@ -42,6 +42,28 @@ abstract class Period {
     abstract LocalDate getNextPeriodDate(LocalDate currentDate);
 }
 
+class YearlyPeriod extends Period {
+    YearlyPeriod() {
+        periodsPerYear = 1
+    }
+
+    @Override
+    LocalDate getNextPeriodDate(LocalDate currentDate) {
+        currentDate.plusYears(1)
+    }
+}
+
+class BiAnnualPeriod extends Period {
+    BiAnnualPeriod() {
+        periodsPerYear = 2
+    }
+
+    @Override
+    LocalDate getNextPeriodDate(LocalDate currentDate) {
+        currentDate.plusMonths(6)
+    }
+}
+
 class MonthlyPeriod extends Period {
     MonthlyPeriod() {
         periodsPerYear = 12
@@ -50,6 +72,17 @@ class MonthlyPeriod extends Period {
     @Override
     LocalDate getNextPeriodDate(LocalDate currentDate) {
         currentDate.plusMonths(1)
+    }
+}
+
+class QuaterlyPeriod extends Period {
+    QuaterlyPeriod() {
+        periodsPerYear = 4
+    }
+
+    @Override
+    LocalDate getNextPeriodDate(LocalDate currentDate) {
+        currentDate.plusMonths(3)
     }
 }
 

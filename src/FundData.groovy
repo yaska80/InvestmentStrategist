@@ -46,11 +46,7 @@ abstract class FundData {
     }
 
     def getMean() {
-        def priceChanges = collectSiblings(periodicalData.values()) { prev, current ->
-            current / prev - 1
-        } as List
-
-        calculateMean(priceChanges)
+        calculateMean(getPriceChanges(periodicalData.values()))
     }
 
     private collectSiblings(Collection collection, Closure transformer) {
@@ -72,17 +68,37 @@ abstract class FundData {
         return results
     }
 
-
-
-
     def getStandardDeviation() {
-        def mean = getMean()
-        def priceChanges = collectSiblings(periodicalData.values()) { prev, current ->
-            prev / current - 1
-        } as List
+        calculateStandardDeviation(getPriceChanges(periodicalData.values()))
+    }
 
+    def getStandardDeviationOnNegativeChange() {
+        def priceChanges = getPriceChanges(periodicalData.values())
+        def data = priceChanges.findAll { it <= 0 }
+        calculateStandardDeviation(data)
+    }
 
-        def differencesFromMean = priceChanges.collect { mean - it }
+    def getStandardDeviationOnPositiveChange() {
+        def priceChanges = getPriceChanges(periodicalData.values())
+        def data = priceChanges.findAll { it >= 0 }
+        calculateStandardDeviation(data)
+    }
+
+    def getMeanOfNegativeChange() {
+        def priceChanges = getPriceChanges(periodicalData.values())
+        def data = priceChanges.findAll { it <= 0 }
+        calculateMean(data)
+    }
+
+    def getMeanOfPositiveChange() {
+        def priceChanges = getPriceChanges(periodicalData.values())
+        def data = priceChanges.findAll { it >= 0 }
+        calculateMean(data)
+    }
+
+    def calculateStandardDeviation(Collection data) {
+        def mean = calculateMean(data)
+        def differencesFromMean = data.collect { mean - it }
 
         def squaredDifferences = differencesFromMean.collect {
             it ** 2
@@ -93,6 +109,12 @@ abstract class FundData {
         def standardDeviation = Math.sqrt(variance)
 
         return standardDeviation
+    }
+
+    def getPriceChanges(Collection data) {
+        collectSiblings(data) { prev, current ->
+            prev / current - 1
+        } as List
     }
 
 //    public getValueForDate(date, strategy) {
