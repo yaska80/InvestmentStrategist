@@ -2,6 +2,8 @@ import org.joda.time.LocalDate
 
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
+import java.text.NumberFormat
+import java.text.ParseException
 
 /**
  *
@@ -32,8 +34,9 @@ def userPeriod = args[0].toUpperCase().replaceAll("\\s", "") + "PERIOD"
 
 def userMultiplier
 try {
-    userMultiplier = Double.parseDouble(args[1])
-} catch (NumberFormatException nfe) {
+    NumberFormat format = NumberFormat.getNumberInstance();
+    userMultiplier = format.parse(args[1]).doubleValue()
+} catch (ParseException pe) {
     println "Provided standard deviation multiplier '${args[1]}' doesn't seem be a floating point number. Your decimal separator is ${DecimalFormatSymbols.getInstance(Locale.getDefault()).getDecimalSeparator()}"
     System.exit(-1)
 }
